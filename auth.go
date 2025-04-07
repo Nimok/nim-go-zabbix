@@ -15,7 +15,7 @@ type AuthRequest struct {
 	ID      int               `json:"id"`
 }
 
-type AuthResponse struct {
+type authResponse struct {
 	JSONRPC string `json:"jsonrpc"`
 	Result  string `json:"result"`
 	ID      int    `json:"id"`
@@ -26,34 +26,34 @@ type AuthResponse struct {
 	} `json:"error,omitempty"`
 }
 
-func (api *ZabbixClient) Authenticate() error {
+func (api *zabbixClient) Authenticate() error {
 	authReq := AuthRequest{
 		JSONRPC: "2.0",
 		Method:  "user.login",
 		Params: map[string]string{
-			"username": api.Username,
-			"password": api.Password,
+			"username": api.username,
+			"password": api.password,
 		},
 		ID: 1,
 	}
 
 	reqBody, _ := json.Marshal(authReq)
-	resp, err := http.Post(api.URL, "application/json-rpc", bytes.NewBuffer(reqBody))
+	resp, err := http.Post(api.url, "application/json-rpc", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return fmt.Errorf("auth request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
 	body, _ := io.ReadAll(resp.Body)
-	var authResp AuthResponse
+	var authResp authResponse
 	json.Unmarshal(body, &authResp)
 
 	if authResp.Error != nil {
 		return fmt.Errorf("auth failed: %s", authResp.Error.Data)
 	}
 
-	api.tokenLock.Lock()
-	api.token = authResp.Result
-	api.tokenLock.Unlock()
+	api.bearerTokenLock.Lock()
+	api.bearerToken = authResp.Result
+	api.bearerTokenLock.Unlock()
 	return nil
 }

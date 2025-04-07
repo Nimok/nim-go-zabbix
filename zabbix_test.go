@@ -1,4 +1,4 @@
-package zabbix
+package zabbix_test
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/joho/godotenv"
+	zabbix "github.com/nimok/nim-go-zabbix"
 )
 
 var url string
@@ -35,33 +36,36 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	// Run tests
 	code := m.Run()
 
-	// Teardown if necessary
 	os.Exit(code)
 }
 
-func TestApiVersion(t *testing.T) {
-	client := NewZabbixClient(url, user, passwd, time.Hour)
-
-	//if err := api.Authenticate(); err != nil {
-	//	fmt.Println("Initial auth failed:", err)
-	//	return
-	//}
-
-	//api.StartTokenRefresher()
-	//defer api.StopTokenRefresher()
-
-	resp, err := client.GetApiVersion()
-	if err != nil {
-		t.Log("smoketest failed")
+func TestClientWithoutAnyAuthMethod(t *testing.T) {
+	_, err := zabbix.NewZabbixClient("any url")
+	if err == nil {
+		t.Log("client should not be allowed to be created without auth")
 		t.FailNow()
 	}
 
-	if resp.Result != "7.2.3" {
-		t.Log("invalid api version")
-		t.Fail()
+}
+
+func TestClientWithApiToken(t *testing.T) {
+	_, err := zabbix.NewZabbixClient(url, zabbix.WithAPIToken("some-token"))
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+
+}
+
+func TestClientWithUserPass(t *testing.T) {
+	_, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd),
+		zabbix.WithBearerTokenTTL(1*time.Hour),
+		zabbix.WithBearerTokenRefresh())
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
 	}
 
 }
