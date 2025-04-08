@@ -202,3 +202,44 @@ func TestHostCreateFailMissingPort(t *testing.T) {
 	}
 
 }
+
+func TestHostGet(t *testing.T) {
+	ctx := context.Background()
+
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+
+	// Authenticate
+	if err := client.Authenticate(); err != nil {
+		t.Log("Initial auth failed:", err)
+		t.FailNow()
+	}
+
+	filter := make(map[string]any, 0)
+	filter["host"] = "Zabbix server"
+
+	hosts, err := client.HostGet(ctx, zabbix.HostGetParameters{
+		GetParameters: zabbix.GetParameters{
+			Filter: filter,
+			Output: "extend",
+		},
+	})
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
+	if len(hosts) == 0 {
+		t.Log("No hosts found")
+		t.Fail()
+	}
+
+	if hosts[0].Host != "Zabbix server" {
+		t.Log("Host name does not match")
+		t.Fail()
+	}
+
+}

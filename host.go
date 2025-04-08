@@ -38,6 +38,54 @@ type Host struct {
 	Inventory         Inventory       `json:"inventory,omitempty"`          // Inventory properties of the host
 }
 
+type HostGetParameters struct {
+	GetParameters
+
+	HostIDs                []string          `json:"hostids,omitempty"`
+	GroupIDs               []string          `json:"groupids,omitempty"`
+	ApplicationIDs         []string          `json:"applicationids,omitempty"`
+	DServiceIDs            []string          `json:"dserviceids,omitempty"`
+	GraphIDs               []string          `json:"graphids,omitempty"`
+	HttpTestIDs            []string          `json:"httptestids,omitempty"`
+	InterfaceIDs           []string          `json:"interfaceids,omitempty"`
+	ItemIDs                []string          `json:"itemids,omitempty"`
+	MaintenanceIDs         []string          `json:"maintenanceids,omitempty"`
+	MonitoredHosts         bool              `json:"monitored_hosts,omitempty"`
+	ProxyHosts             bool              `json:"proxy_hosts,omitempty"`
+	ProxyIDs               []string          `json:"proxyids,omitempty"`
+	TemplatedHosts         bool              `json:"templated_hosts,omitempty"`
+	TemplateIDs            []string          `json:"templateids,omitempty"`
+	TriggerIDs             []string          `json:"triggerids,omitempty"`
+	WithItems              bool              `json:"with_items,omitempty"`
+	WithApplications       bool              `json:"with_applications,omitempty"`
+	WithGraphs             bool              `json:"with_graphs,omitempty"`
+	WithHttpTests          bool              `json:"with_httptests,omitempty"`
+	WithMonitoredHttpTests bool              `json:"with_monitored_httptests,omitempty"`
+	WithMonitoredItems     bool              `json:"with_monitored_items,omitempty"`
+	WithMonitoredTriggers  bool              `json:"with_monitored_triggers,omitempty"`
+	WithSimpleGraphItems   bool              `json:"with_simple_graph_items,omitempty"`
+	WithTriggers           bool              `json:"with_triggers,omitempty"`
+	WithInventory          bool              `json:"withInventory,omitempty"`
+	SelectGroups           any               `json:"selectGroups,omitempty"`
+	SelectApplications     any               `json:"selectApplications,omitempty"`
+	SelectDiscoveries      any               `json:"selectDiscoveries,omitempty"`
+	SelectDiscoveryRule    any               `json:"selectDiscoveryRule,omitempty"`
+	SelectGraphs           any               `json:"selectGraphs,omitempty"`
+	SelectHostDiscovery    any               `json:"selectHostDiscovery,omitempty"`
+	SelectHttpTests        any               `json:"selectHttpTests,omitempty"`
+	SelectInterfaces       any               `json:"selectInterfaces,omitempty"`
+	SelectInventory        any               `json:"selectInventory,omitempty"`
+	SelectMacros           any               `json:"selectMacros,omitempty"`
+	SelectParentTemplates  any               `json:"selectParentTemplates,omitempty"`
+	SelectScreens          any               `json:"selectScreens,omitempty"`
+	LimitSelects           int               `json:"limitSelects,omitempty"`
+	SearchInventory        map[string]string `json:"searchInventory,omitempty"`
+}
+
+type hostGetResponse struct {
+	HostIDs []string `json:"hostids"` // IDs of the created hosts
+}
+
 type hostCreateResponse struct {
 	HostIDs []string `json:"hostids"` // IDs of the created hosts
 }
@@ -84,4 +132,16 @@ func (z *zabbixClient) HostUpdate(ctx context.Context, params Host) (*hostUpdate
 	}
 
 	return &result, nil
+}
+
+func (z *zabbixClient) HostGet(ctx context.Context, params HostGetParameters) ([]Host, error) {
+
+	var result []Host
+
+	err := z.makeRequest(ctx, "host.get", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
 }

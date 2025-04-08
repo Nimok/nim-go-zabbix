@@ -19,6 +19,7 @@ type ZabbixAPI interface {
 	StartTokenRefresher(refreshOffset time.Duration) error
 	StopTokenRefresher()
 
+	HostGet(ctx context.Context, params HostGetParameters) ([]Host, error)
 	HostCreate(ctx context.Context, params Host) (*hostCreateResponse, error)
 	HostDelete(ctx context.Context, params []string) (*hostDeleteResponse, error)
 	HostUpdate(ctx context.Context, params Host) (*hostUpdateResponse, error)
