@@ -37,16 +37,26 @@ func (api *zabbixClient) Authenticate() error {
 		ID: 1,
 	}
 
-	reqBody, _ := json.Marshal(authReq)
+	reqBody, err := json.Marshal(authReq)
+	if err != nil {
+		return err
+	}
+
 	resp, err := http.Post(api.url, "application/json-rpc", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return fmt.Errorf("auth request failed: %v", err)
 	}
 	defer resp.Body.Close()
 
-	body, _ := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
 	var authResp authResponse
-	json.Unmarshal(body, &authResp)
+	err = json.Unmarshal(body, &authResp)
+	if err != nil {
+		return err
+	}
 
 	if authResp.Error != nil {
 		return fmt.Errorf("auth failed: %s", authResp.Error.Data)

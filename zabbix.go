@@ -16,6 +16,8 @@ import (
 
 type ZabbixAPI interface {
 	Authenticate() error
+	StartTokenRefresher(refreshOffset time.Duration) error
+	StopTokenRefresher()
 
 	HostCreate(ctx context.Context, params Host) (*hostCreateResponse, error)
 	HostDelete(ctx context.Context, params []string) (*hostDeleteResponse, error)
@@ -28,11 +30,10 @@ type zabbixClient struct {
 	password string
 	apiToken string
 
-	bearerToken        string
-	bearerTokenRefresh bool
-	bearerTokenTTL     time.Duration
-	bearerTokenLock    sync.RWMutex
-	stopChan           chan struct{}
+	bearerToken     string
+	bearerTokenTTL  time.Duration
+	bearerTokenLock sync.RWMutex
+	stopChan        chan struct{}
 }
 
 type ZabbixClientOption func(*zabbixClient)
@@ -56,12 +57,6 @@ func WithAPIToken(apiToken string) ZabbixClientOption {
 	}
 }
 
-func WithBearerTokenRefresh() ZabbixClientOption {
-	return func(c *zabbixClient) {
-		c.bearerTokenRefresh = true
-	}
-}
-
 func NewZabbixClient(url string, opts ...ZabbixClientOption) (ZabbixAPI, error) {
 	client := &zabbixClient{
 		url:      url,
@@ -76,17 +71,12 @@ func NewZabbixClient(url string, opts ...ZabbixClientOption) (ZabbixAPI, error) 
 		return nil, err
 	}
 
-	if client.bearerTokenRefresh {
-		client.StartTokenRefresher()
-		defer client.StopTokenRefresher()
-	}
-
 	return client, nil
 }
 
 func validateClient(c *zabbixClient) error {
 	if c.url == "" {
-		return errors.New("url cant be empty")
+		return errors.New("url can't be empty")
 	}
 
 	if c.apiToken == "" {
@@ -97,16 +87,25 @@ func validateClient(c *zabbixClient) error {
 
 	if c.apiToken != "" {
 		if c.username != "" || c.password != "" {
-			return errors.New("you cant supply both an api token and a user/password login")
+			return errors.New("you can't supply both an api token and a user/password login")
 		}
 	}
 
 	return nil
 }
 
-func (c *zabbixClient) StartTokenRefresher() {
+func (c *zabbixClient) StartTokenRefresher(refreshOffset time.Duration) error {
+	if c.bearerTokenTTL == 0 {
+		return errors.New("bearer token TTL is not set")
+	}
+
+	if c.bearerTokenTTL-refreshOffset <= 0 {
+		return errors.New("refresh offset must be less than bearer token TTL")
+	}
+
 	go func() {
-		ticker := time.NewTicker(c.bearerTokenTTL - 5*time.Minute)
+		ticker := time.NewTicker(c.bearerTokenTTL - refreshOffset)
+
 		defer ticker.Stop()
 		fmt.Println("[INFO] Starting token refresher...")
 		for {
@@ -125,6 +124,7 @@ func (c *zabbixClient) StartTokenRefresher() {
 			}
 		}
 	}()
+	return nil
 }
 
 func (client *zabbixClient) StopTokenRefresher() {
@@ -158,8 +158,15 @@ func (c *zabbixClient) makeRequest(ctx context.Context, method string, params an
 		"id":      1,
 	}
 
-	reqBody, _ := json.Marshal(request)
-	req, _ := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewBuffer(reqBody))
+	reqBody, err := json.Marshal(request)
+	if err != nil {
+		return err
+	}
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.url, bytes.NewBuffer(reqBody))
+	if err != nil {
+		return err
+	}
+
 	req.Header.Set("Content-Type", "application/json-rpc")
 	req.Header.Set("Authorization", "Bearer "+token)
 

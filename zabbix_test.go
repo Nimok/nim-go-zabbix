@@ -60,12 +60,19 @@ func TestClientWithApiToken(t *testing.T) {
 }
 
 func TestClientWithUserPass(t *testing.T) {
-	_, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd),
-		zabbix.WithBearerTokenTTL(1*time.Hour),
-		zabbix.WithBearerTokenRefresh())
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd),
+		zabbix.WithBearerTokenTTL(10*time.Second))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
 	}
 
+	client.Authenticate()
+	err = client.StartTokenRefresher(3 * time.Second)
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+	time.Sleep(2 * time.Second)
+	client.StopTokenRefresher()
 }
