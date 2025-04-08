@@ -26,13 +26,13 @@ type authResponse struct {
 	} `json:"error,omitempty"`
 }
 
-func (api *zabbixClient) Authenticate() error {
+func (client *zabbixClient) Authenticate() error {
 	authReq := AuthRequest{
 		JSONRPC: "2.0",
 		Method:  "user.login",
 		Params: map[string]string{
-			"username": api.username,
-			"password": api.password,
+			"username": client.username,
+			"password": client.password,
 		},
 		ID: 1,
 	}
@@ -42,7 +42,7 @@ func (api *zabbixClient) Authenticate() error {
 		return err
 	}
 
-	resp, err := http.Post(api.url, "application/json-rpc", bytes.NewBuffer(reqBody))
+	resp, err := http.Post(client.url, "application/json-rpc", bytes.NewBuffer(reqBody))
 	if err != nil {
 		return fmt.Errorf("auth request failed: %v", err)
 	}
@@ -62,8 +62,8 @@ func (api *zabbixClient) Authenticate() error {
 		return fmt.Errorf("auth failed: %s", authResp.Error.Data)
 	}
 
-	api.bearerTokenLock.Lock()
-	api.bearerToken = authResp.Result
-	api.bearerTokenLock.Unlock()
+	client.bearerTokenLock.Lock()
+	client.bearerToken = authResp.Result
+	client.bearerTokenLock.Unlock()
 	return nil
 }

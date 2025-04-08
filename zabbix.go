@@ -177,6 +177,10 @@ func (c *zabbixClient) makeRequest(ctx context.Context, method string, params an
 	}
 	defer resp.Body.Close()
 
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("request failed with status code: %d", resp.StatusCode)
+	}
+
 	rawConf := make(map[string]any)
 
 	decoder := json.NewDecoder(resp.Body)
