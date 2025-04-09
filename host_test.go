@@ -229,7 +229,7 @@ func TestHostGet(t *testing.T) {
 	})
 	if err != nil {
 		t.Log(err)
-		t.Fail()
+		t.FailNow()
 	}
 
 	if len(hosts) == 0 {

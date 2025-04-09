@@ -65,7 +65,6 @@ type HostGetParameters struct {
 	WithMonitoredTriggers  bool              `json:"with_monitored_triggers,omitempty"`
 	WithSimpleGraphItems   bool              `json:"with_simple_graph_items,omitempty"`
 	WithTriggers           bool              `json:"with_triggers,omitempty"`
-	WithInventory          bool              `json:"withInventory,omitempty"`
 	SelectGroups           any               `json:"selectGroups,omitempty"`
 	SelectApplications     any               `json:"selectApplications,omitempty"`
 	SelectDiscoveries      any               `json:"selectDiscoveries,omitempty"`
@@ -80,10 +79,6 @@ type HostGetParameters struct {
 	SelectScreens          any               `json:"selectScreens,omitempty"`
 	LimitSelects           int               `json:"limitSelects,omitempty"`
 	SearchInventory        map[string]string `json:"searchInventory,omitempty"`
-}
-
-type hostGetResponse struct {
-	HostIDs []string `json:"hostids"` // IDs of the created hosts
 }
 
 type hostCreateResponse struct {
