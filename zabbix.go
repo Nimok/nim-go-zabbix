@@ -25,6 +25,8 @@ type ZabbixAPI interface {
 	HostUpdate(ctx context.Context, params Host) (*hostUpdateResponse, error)
 
 	HostgroupGet(ctx context.Context, params HostGroupGetParameters) ([]HostGroup, error)
+
+	ProxyGet(ctx context.Context, params ProxyGetParameters) ([]Proxy, error)
 }
 
 type zabbixClient struct {
