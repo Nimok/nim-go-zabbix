@@ -23,6 +23,8 @@ type ZabbixAPI interface {
 	HostCreate(ctx context.Context, params Host) (*hostCreateResponse, error)
 	HostDelete(ctx context.Context, params []string) (*hostDeleteResponse, error)
 	HostUpdate(ctx context.Context, params Host) (*hostUpdateResponse, error)
+
+	HostgroupGet(ctx context.Context, params HostGroupGetParameters) ([]HostGroup, error)
 }
 
 type zabbixClient struct {

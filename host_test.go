@@ -234,7 +234,7 @@ func TestHostGet(t *testing.T) {
 
 	if len(hosts) == 0 {
 		t.Log("No hosts found")
-		t.Fail()
+		t.FailNow()
 	}
 
 	if hosts[0].Host != "Zabbix server" {
