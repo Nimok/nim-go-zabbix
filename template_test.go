@@ -39,7 +39,7 @@ func TestTemplateGet(t *testing.T) {
 	}
 
 	if template[0].Host != "Zabbix server health" {
-		t.Fatal("Template name does not match")
+		t.Fatal("Template host does not match")
 	}
 
 }

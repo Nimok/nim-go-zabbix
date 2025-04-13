@@ -27,6 +27,11 @@ type authResponse struct {
 }
 
 func (client *zabbixClient) Authenticate() error {
+	if client.apiToken != "" {
+		client.bearerToken = client.apiToken
+		return nil
+	}
+
 	authReq := AuthRequest{
 		JSONRPC: "2.0",
 		Method:  "user.login",
