@@ -19,6 +19,7 @@ type ZabbixAPI interface {
 	StartTokenRefresher(refreshOffset time.Duration) error
 	StopTokenRefresher()
 
+	HostGet(ctx context.Context, params HostGetParameters) ([]Host, error)
 	HostCreate(ctx context.Context, params Host) (*hostCreateResponse, error)
 	HostDelete(ctx context.Context, params []string) (*hostDeleteResponse, error)
 	HostUpdate(ctx context.Context, params Host) (*hostUpdateResponse, error)
@@ -33,7 +34,9 @@ type zabbixClient struct {
 	bearerToken     string
 	bearerTokenTTL  time.Duration
 	bearerTokenLock sync.RWMutex
-	stopChan        chan struct{}
+
+	stopChan      chan struct{}
+	errorCallback func(error)
 }
 
 type ZabbixClientOption func(*zabbixClient)
@@ -57,10 +60,17 @@ func WithAPIToken(apiToken string) ZabbixClientOption {
 	}
 }
 
+func WithErrorCallback(callback func(error)) ZabbixClientOption {
+	return func(c *zabbixClient) {
+		c.errorCallback = callback
+	}
+}
+
 func NewZabbixClient(url string, opts ...ZabbixClientOption) (ZabbixAPI, error) {
 	client := &zabbixClient{
-		url:      url,
-		stopChan: make(chan struct{}),
+		url:           url,
+		stopChan:      make(chan struct{}),
+		errorCallback: func(err error) {},
 	}
 	for _, opt := range opts {
 		opt(client)
@@ -114,6 +124,7 @@ func (c *zabbixClient) StartTokenRefresher(refreshOffset time.Duration) error {
 				fmt.Println("[INFO] Refreshing token...")
 				if err := c.Authenticate(); err != nil {
 					fmt.Println("[ERROR] Token refresh failed:", err)
+					c.errorCallback(err)
 				} else {
 					fmt.Println("[INFO] Token refreshed successfully.")
 				}
