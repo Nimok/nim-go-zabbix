@@ -41,7 +41,6 @@ func TestMain(m *testing.M) {
 
 	if token == "" {
 		fmt.Println("token not set")
-		os.Exit(1)
 	}
 
 	code := m.Run()

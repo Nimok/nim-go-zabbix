@@ -10,7 +10,7 @@ env:
     TESTING_ZABBIX_PASS: "zabbix"
 
 jobs:
-  test:
+  integration-tests:
     runs-on: ubuntu-latest
 
     steps:
