@@ -29,6 +29,8 @@ type ZabbixAPI interface {
 	ProxyGet(ctx context.Context, params ProxyGetParameters) ([]Proxy, error)
 
 	TemplateGet(ctx context.Context, params TemplateGetParameters) ([]Template, error)
+
+	Logout(ctx context.Context) (LogoutSuccess, error)
 }
 
 type zabbixClient struct {
