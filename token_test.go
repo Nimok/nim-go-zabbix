@@ -36,4 +36,9 @@ func TestTokenCreateAndGenerate(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	_, err = client.TokenDelete(ctx, tokenResp.TokenIDs)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 }

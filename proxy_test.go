@@ -97,3 +97,31 @@ func TestProxyCreateAndDelete(t *testing.T) {
 	}
 
 }
+
+func createProxy(ctx context.Context, client zabbix.ZabbixClient) (proxyId string, err error) {
+	params := zabbix.ProxyCreateParameters{
+		Proxy: zabbix.Proxy{
+			Name:          "my-proxy",
+			OperatingMode: 0,
+		},
+	}
+
+	createResp, err := client.ProxyCreate(ctx, params)
+	if err != nil {
+		return "", err
+	}
+
+	return createResp.ProxyIDs[0], nil
+}
+
+func deleteProxy(ctx context.Context, client zabbix.ZabbixClient, proxyId string) error {
+
+	_, err := client.ProxyDelete(ctx, []string{
+		proxyId,
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

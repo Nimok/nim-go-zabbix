@@ -270,7 +270,11 @@ func TestHostCreateMonitoredByProxy(t *testing.T) {
 	templateId := "10395"
 	community := "public"
 	ipAddress := "127.0.0.1"
-	proxyId := "10568"
+
+	proxyId, err := createProxy(ctx, client)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	hostToCreate := zabbix.Host{
 		Host: hostname,
@@ -326,6 +330,8 @@ func TestHostCreateMonitoredByProxy(t *testing.T) {
 		t.Log("Host IDs do not match")
 		t.Fail()
 	}
+
+	deleteProxy(ctx, client, proxyId)
 
 	ok, err := client.Logout(ctx)
 	if err != nil {

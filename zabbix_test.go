@@ -38,14 +38,17 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 
-	setup()
+	bootstrapTokenId := setup()
 
 	code := m.Run()
+
+	teardown(bootstrapTokenId)
 
 	os.Exit(code)
 }
 
-func setup() {
+func setup() (tokenId string) {
+	fmt.Println("setting up tests")
 	ctx := context.Background()
 
 	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
@@ -78,6 +81,32 @@ func setup() {
 	}
 
 	token = genResp[0].Token
+
+	return genResp[0].TokenId
+}
+
+func teardown(bootstrapTokenId string) {
+	fmt.Println("tearing down tests")
+	ctx := context.Background()
+
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	// Authenticate
+	if err := client.Authenticate(); err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	_, err = client.TokenDelete(ctx, zabbix.TokenDeleteParameters{
+		bootstrapTokenId,
+	})
+	if err != nil {
+		fmt.Println("cleanup failed, you might need to do some manual cleanup")
+	}
 }
 
 func TestClientWithoutAnyAuthMethod(t *testing.T) {

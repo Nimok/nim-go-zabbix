@@ -16,11 +16,17 @@ type tokenCreateResponse struct {
 	TokenIDs []string `json:"tokenids"`
 }
 
-type tokenGenerateParameters []string
+type TokenGenerateParameters []string
 
 type tokenGenerateResponse struct {
 	TokenId string `json:"tokenid"`
 	Token   string `json:"token"`
+}
+
+type TokenDeleteParameters []string
+
+type tokenDeleteResponse struct {
+	TokenIDs []string `json:"tokenids"`
 }
 
 func (z *zabbixClient) TokenCreate(ctx context.Context, params Token) (*tokenCreateResponse, error) {
@@ -35,7 +41,7 @@ func (z *zabbixClient) TokenCreate(ctx context.Context, params Token) (*tokenCre
 	return &result, nil
 }
 
-func (z *zabbixClient) TokenGenerate(ctx context.Context, params tokenGenerateParameters) ([]tokenGenerateResponse, error) {
+func (z *zabbixClient) TokenGenerate(ctx context.Context, params TokenGenerateParameters) ([]tokenGenerateResponse, error) {
 
 	var result []tokenGenerateResponse
 
@@ -45,4 +51,16 @@ func (z *zabbixClient) TokenGenerate(ctx context.Context, params tokenGeneratePa
 	}
 
 	return result, nil
+}
+
+func (z *zabbixClient) TokenDelete(ctx context.Context, params TokenDeleteParameters) (*tokenDeleteResponse, error) {
+
+	var result tokenDeleteResponse
+
+	err := z.makeRequest(ctx, "token.delete", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }

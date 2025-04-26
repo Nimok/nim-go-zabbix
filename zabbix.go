@@ -14,7 +14,7 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type ZabbixAPI interface {
+type ZabbixClient interface {
 	Authenticate() error
 	StartTokenRefresher(refreshOffset time.Duration) error
 	StopTokenRefresher()
@@ -33,7 +33,8 @@ type ZabbixAPI interface {
 	TemplateGet(ctx context.Context, params TemplateGetParameters) ([]Template, error)
 
 	TokenCreate(ctx context.Context, params Token) (*tokenCreateResponse, error)
-	TokenGenerate(ctx context.Context, params tokenGenerateParameters) ([]tokenGenerateResponse, error)
+	TokenGenerate(ctx context.Context, params TokenGenerateParameters) ([]tokenGenerateResponse, error)
+	TokenDelete(ctx context.Context, params TokenDeleteParameters) (*tokenDeleteResponse, error)
 
 	Logout(ctx context.Context) (LogoutSuccess, error)
 }
@@ -79,7 +80,7 @@ func WithErrorCallback(callback func(error)) ZabbixClientOption {
 	}
 }
 
-func NewZabbixClient(url string, opts ...ZabbixClientOption) (ZabbixAPI, error) {
+func NewZabbixClient(url string, opts ...ZabbixClientOption) (ZabbixClient, error) {
 	client := &zabbixClient{
 		url:           url,
 		stopChan:      make(chan struct{}),
