@@ -4,6 +4,11 @@ on:
   pull_request:
     branches: [main]
 
+env:
+    TESTING_ZABBIX_URL: "http://localhost:8282/api_jsonrpc.php"
+    TESTING_ZABBIX_USER: "Admin"
+    TESTING_ZABBIX_PASS: "zabbix"
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -24,7 +29,7 @@ jobs:
       - name: Wait for Zabbix Frontend (API)
         run: |
           echo "Waiting for Zabbix API (Frontend)..."
-          until curl -s http://localhost:8080/api_jsonrpc.php | grep -q "Parse error"; do
+          until curl -f http://localhost:8282/; do
             echo -n "."
             sleep 5
           done
