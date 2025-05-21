@@ -54,11 +54,11 @@ type ProxyCreateParameters struct {
 }
 
 type proxyCreateResponse struct {
-	ProxyIDs []string `json:"proxyids"` // IDs of the created hosts
+	ProxyIDs []string `json:"proxyids"` // IDs of the created proxies
 }
 
 type proxyDeleteResponse struct {
-	ProxyIDs []string `json:"proxyids"` // IDs of the created hosts
+	ProxyIDs []string `json:"proxyids"` // IDs of the deleted proxies
 }
 
 func (z *zabbixClient) ProxyGet(ctx context.Context, params ProxyGetParameters) ([]Proxy, error) {

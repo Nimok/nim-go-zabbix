@@ -331,7 +331,10 @@ func TestHostCreateMonitoredByProxy(t *testing.T) {
 		t.Fail()
 	}
 
-	deleteProxy(ctx, client, proxyId)
+	if err := deleteProxy(ctx, client, proxyId); err != nil {
+		t.Log(err)
+		t.Fail()
+	}
 
 	ok, err := client.Logout(ctx)
 	if err != nil {
