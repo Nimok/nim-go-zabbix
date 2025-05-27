@@ -40,7 +40,6 @@ Supports refreshing on underlaying Bearar Token on specified interval.
 ```go
 client, err := zabbix.NewZabbixClient("http://<your-zabbix-server>/api_jsonrpc.php",
     zabbix.WithAPIToken("someapitoken"),
-    zabbix.WithBearerTokenTTL(time.Hour*14), // Set the TTL of the bearer token from the Zabbix API
 )
 if err != nil {
     log.Fatal(err)
@@ -52,7 +51,7 @@ if err != nil {
     log.Fatal(err)
 }
 
-err = client.StartTokenRefresher(time.Minute * 10) //Refresh the bearer token 10 minutes before expiry
+err = client.StartTokenRefresher(time.Minute * 10) //Refresh the bearer token every 10 minutes
 if err != nil {
     log.Fatal(err)
 }
@@ -61,7 +60,7 @@ if err != nil {
 Use a custom callback for errors:
 
 ```go
-client, err := zabbix.NewZabbixClient("http://localhost/api_jsonrpc.php",
+client, err := zabbix.NewZabbixClient("http://<your-zabbix-server>/api_jsonrpc.php",
     zabbix.WithAPIToken("someapitoken"),
     zabbix.WithErrorCallback(func(err error) { // Setup custom error handling
         // Do what you want with the errors

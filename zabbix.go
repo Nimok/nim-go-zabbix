@@ -46,7 +46,6 @@ type zabbixClient struct {
 	apiToken string
 
 	bearerToken     string
-	bearerTokenTTL  time.Duration
 	bearerTokenLock sync.RWMutex
 
 	stopChan      chan struct{}
@@ -59,12 +58,6 @@ func WithUserPass(username, password string) ZabbixClientOption {
 	return func(c *zabbixClient) {
 		c.username = username
 		c.password = password
-	}
-}
-
-func WithBearerTokenTTL(ttl time.Duration) ZabbixClientOption {
-	return func(c *zabbixClient) {
-		c.bearerTokenTTL = ttl
 	}
 }
 
@@ -118,17 +111,10 @@ func validateClient(c *zabbixClient) error {
 	return nil
 }
 
-func (c *zabbixClient) StartTokenRefresher(refreshOffset time.Duration) error {
-	if c.bearerTokenTTL == 0 {
-		return errors.New("bearer token TTL is not set")
-	}
-
-	if c.bearerTokenTTL-refreshOffset <= 0 {
-		return errors.New("refresh offset must be less than bearer token TTL")
-	}
+func (c *zabbixClient) StartTokenRefresher(refreshInterval time.Duration) error {
 
 	go func() {
-		ticker := time.NewTicker(c.bearerTokenTTL - refreshOffset)
+		ticker := time.NewTicker(refreshInterval)
 
 		defer ticker.Stop()
 		fmt.Println("[INFO] Starting token refresher...")
