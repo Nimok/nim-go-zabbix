@@ -16,7 +16,7 @@ import (
 
 type ZabbixClient interface {
 	Authenticate() error
-	StartTokenRefresher(refreshOffset time.Duration) error
+	StartTokenRefresher(refreshInterval time.Duration) error
 	StopTokenRefresher()
 
 	HostGet(ctx context.Context, params HostGetParameters) ([]Host, error)

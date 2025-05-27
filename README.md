@@ -117,7 +117,7 @@ func main() {
 		log.Println(host.HostID)
 	}
 
-    _, err := client.Logout(ctx)
+	_, err := client.Logout(ctx)
 	if err != nil {
 		log.Println(err)
 	}
