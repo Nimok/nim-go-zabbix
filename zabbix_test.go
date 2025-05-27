@@ -51,7 +51,7 @@ func setup() (tokenId string) {
 	fmt.Println("setting up tests")
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -89,7 +89,7 @@ func teardown(bootstrapTokenId string) {
 	fmt.Println("tearing down tests")
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -120,7 +120,6 @@ func TestClientWithoutAnyAuthMethod(t *testing.T) {
 
 func TestClientWithUserPass(t *testing.T) {
 	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd),
-		zabbix.WithBearerTokenTTL(10*time.Second),
 		zabbix.WithErrorCallback(func(err error) {
 			t.Error(err)
 		}))
@@ -160,7 +159,6 @@ func TestClientWithUserPass(t *testing.T) {
 
 func TestClientWithAPIToken(t *testing.T) {
 	client, err := zabbix.NewZabbixClient(url, zabbix.WithAPIToken(token),
-		zabbix.WithBearerTokenTTL(10*time.Second),
 		zabbix.WithErrorCallback(func(err error) {
 			t.Log(err)
 		}))

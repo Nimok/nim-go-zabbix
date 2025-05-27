@@ -3,7 +3,6 @@ package zabbix_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	zabbix "github.com/nimok/nim-go-zabbix"
 )
@@ -11,7 +10,7 @@ import (
 func TestHostCreateAndDelete(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -83,7 +82,7 @@ func TestHostCreateAndDelete(t *testing.T) {
 func TestHostCreateAndUpdate(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -156,7 +155,7 @@ func TestHostCreateAndUpdate(t *testing.T) {
 func TestHostCreateFailMissingPort(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -211,7 +210,7 @@ func TestHostCreateFailMissingPort(t *testing.T) {
 func TestHostGet(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -253,7 +252,7 @@ func TestHostCreateMonitoredByProxy(t *testing.T) {
 
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()

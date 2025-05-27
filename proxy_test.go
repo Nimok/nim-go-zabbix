@@ -3,7 +3,6 @@ package zabbix_test
 import (
 	"context"
 	"testing"
-	"time"
 
 	zabbix "github.com/nimok/nim-go-zabbix"
 )
@@ -12,7 +11,7 @@ func TestProxyGet(t *testing.T) {
 	ctx := context.Background()
 	proxyName := "some-proxy"
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -65,7 +64,7 @@ func TestProxyGet(t *testing.T) {
 func TestProxyCreateAndDelete(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd), zabbix.WithBearerTokenTTL(1*time.Hour))
+	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Fatal(err)
 	}
