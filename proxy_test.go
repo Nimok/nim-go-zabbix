@@ -11,7 +11,7 @@ func TestProxyGet(t *testing.T) {
 	ctx := context.Background()
 	proxyName := "some-proxy"
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -64,7 +64,7 @@ func TestProxyGet(t *testing.T) {
 func TestProxyCreateAndDelete(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +97,7 @@ func TestProxyCreateAndDelete(t *testing.T) {
 
 }
 
-func createProxy(ctx context.Context, client zabbix.ZabbixClient) (proxyId string, err error) {
+func createProxy(ctx context.Context, client zabbix.Client) (proxyId string, err error) {
 	params := zabbix.ProxyCreateParameters{
 		Proxy: zabbix.Proxy{
 			Name:          "my-proxy",
@@ -113,7 +113,7 @@ func createProxy(ctx context.Context, client zabbix.ZabbixClient) (proxyId strin
 	return createResp.ProxyIDs[0], nil
 }
 
-func deleteProxy(ctx context.Context, client zabbix.ZabbixClient, proxyId string) error {
+func deleteProxy(ctx context.Context, client zabbix.Client, proxyId string) error {
 
 	_, err := client.ProxyDelete(ctx, []string{
 		proxyId,

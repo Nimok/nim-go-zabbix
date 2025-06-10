@@ -10,7 +10,7 @@ import (
 func TestTemplateGet(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Fatal(err)
 	}

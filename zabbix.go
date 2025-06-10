@@ -14,7 +14,17 @@ import (
 	"github.com/mitchellh/mapstructure"
 )
 
-type ZabbixClient interface {
+const (
+	SelectExtendedOutput = "extend"
+	SelectCount          = "count"
+)
+
+const (
+	GetParametersSortOrderASC  = "ASC"
+	GetParametersSortOrderDESC = "DESC"
+)
+
+type Client interface {
 	Authenticate() error
 	StartTokenRefresher(refreshInterval time.Duration) error
 	StopTokenRefresher()
@@ -52,28 +62,28 @@ type zabbixClient struct {
 	errorCallback func(error)
 }
 
-type ZabbixClientOption func(*zabbixClient)
+type ClientOption func(*zabbixClient)
 
-func WithUserPass(username, password string) ZabbixClientOption {
+func WithUserPass(username, password string) ClientOption {
 	return func(c *zabbixClient) {
 		c.username = username
 		c.password = password
 	}
 }
 
-func WithAPIToken(apiToken string) ZabbixClientOption {
+func WithAPIToken(apiToken string) ClientOption {
 	return func(c *zabbixClient) {
 		c.apiToken = apiToken
 	}
 }
 
-func WithErrorCallback(callback func(error)) ZabbixClientOption {
+func WithErrorCallback(callback func(error)) ClientOption {
 	return func(c *zabbixClient) {
 		c.errorCallback = callback
 	}
 }
 
-func NewZabbixClient(url string, opts ...ZabbixClientOption) (ZabbixClient, error) {
+func NewClient(url string, opts ...ClientOption) (Client, error) {
 	client := &zabbixClient{
 		url:           url,
 		stopChan:      make(chan struct{}),
