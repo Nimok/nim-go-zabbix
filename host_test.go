@@ -10,7 +10,7 @@ import (
 func TestHostCreateAndDelete(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -82,7 +82,7 @@ func TestHostCreateAndDelete(t *testing.T) {
 func TestHostCreateAndUpdate(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -155,7 +155,7 @@ func TestHostCreateAndUpdate(t *testing.T) {
 func TestHostCreateFailMissingPort(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -210,7 +210,7 @@ func TestHostCreateFailMissingPort(t *testing.T) {
 func TestHostGet(t *testing.T) {
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -252,7 +252,7 @@ func TestHostCreateMonitoredByProxy(t *testing.T) {
 
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		t.Log(err)
 		t.FailNow()

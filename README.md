@@ -19,7 +19,7 @@ Example:
 
 ```go
 // Create client with username/password as authentication method
-client, err := zabbix.NewZabbixClient("http://<your-zabbix-server>/api_jsonrpc.php",
+client, err := zabbix.NewClient("http://<your-zabbix-server>/api_jsonrpc.php",
     zabbix.WithUserPass("bestUsername", "excellentPassword"))
 if err != nil {
     log.Fatal(err)
@@ -28,7 +28,7 @@ if err != nil {
 
 ```go
 // Create client with an api token
-client, err := zabbix.NewZabbixClient("http://<your-zabbix-server>/api_jsonrpc.php",
+client, err := zabbix.NewClient("http://<your-zabbix-server>/api_jsonrpc.php",
     zabbix.WithAPIToken("someapitoken"))
 if err != nil {
     log.Fatal(err)
@@ -38,7 +38,7 @@ if err != nil {
 Supports refreshing on underlaying Bearar Token on specified interval.
 
 ```go
-client, err := zabbix.NewZabbixClient("http://<your-zabbix-server>/api_jsonrpc.php",
+client, err := zabbix.NewClient("http://<your-zabbix-server>/api_jsonrpc.php",
     zabbix.WithAPIToken("someapitoken"),
 )
 if err != nil {
@@ -60,7 +60,7 @@ if err != nil {
 Use a custom callback for errors:
 
 ```go
-client, err := zabbix.NewZabbixClient("http://<your-zabbix-server>/api_jsonrpc.php",
+client, err := zabbix.NewClient("http://<your-zabbix-server>/api_jsonrpc.php",
     zabbix.WithAPIToken("someapitoken"),
     zabbix.WithErrorCallback(func(err error) { // Setup custom error handling
         // Do what you want with the errors
@@ -86,7 +86,7 @@ func main() {
 	ctx := context.Background()
 
 	// Create client with username/password as authentication method
-	client, err := zabbix.NewZabbixClient("http://<your-zabbix-server>/api_jsonrpc.php",
+	client, err := zabbix.NewClient("http://<your-zabbix-server>/api_jsonrpc.php",
 		zabbix.WithUserPass("bestUsername", "excellentPassword"))
 	if err != nil {
 		log.Fatal(err)

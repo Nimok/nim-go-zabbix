@@ -51,7 +51,7 @@ func setup() (tokenId string) {
 	fmt.Println("setting up tests")
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -89,7 +89,7 @@ func teardown(bootstrapTokenId string) {
 	fmt.Println("tearing down tests")
 	ctx := context.Background()
 
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd))
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -110,7 +110,7 @@ func teardown(bootstrapTokenId string) {
 }
 
 func TestClientWithoutAnyAuthMethod(t *testing.T) {
-	_, err := zabbix.NewZabbixClient("any url")
+	_, err := zabbix.NewClient("any url")
 	if err == nil {
 		t.Log("client should not be allowed to be created without auth")
 		t.FailNow()
@@ -119,7 +119,7 @@ func TestClientWithoutAnyAuthMethod(t *testing.T) {
 }
 
 func TestClientWithUserPass(t *testing.T) {
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithUserPass(user, passwd),
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd),
 		zabbix.WithErrorCallback(func(err error) {
 			t.Error(err)
 		}))
@@ -158,7 +158,7 @@ func TestClientWithUserPass(t *testing.T) {
 }
 
 func TestClientWithAPIToken(t *testing.T) {
-	client, err := zabbix.NewZabbixClient(url, zabbix.WithAPIToken(token),
+	client, err := zabbix.NewClient(url, zabbix.WithAPIToken(token),
 		zabbix.WithErrorCallback(func(err error) {
 			t.Log(err)
 		}))
