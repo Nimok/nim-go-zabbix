@@ -12,26 +12,26 @@ type Token struct {
 	ExpiresAt  int64  `json:"expires_at,omitempty"`
 }
 
-type tokenCreateResponse struct {
+type TokenCreateResponse struct {
 	TokenIDs []string `json:"tokenids"`
 }
 
 type TokenGenerateParameters []string
 
-type tokenGenerateResponse struct {
+type TokenGenerateResponse struct {
 	TokenId string `json:"tokenid"`
 	Token   string `json:"token"`
 }
 
 type TokenDeleteParameters []string
 
-type tokenDeleteResponse struct {
+type TokenDeleteResponse struct {
 	TokenIDs []string `json:"tokenids"`
 }
 
-func (z *zabbixClient) TokenCreate(ctx context.Context, params Token) (*tokenCreateResponse, error) {
+func (z *zabbixClient) TokenCreate(ctx context.Context, params Token) (*TokenCreateResponse, error) {
 
-	var result tokenCreateResponse
+	var result TokenCreateResponse
 
 	err := z.makeRequest(ctx, "token.create", params, &result)
 	if err != nil {
@@ -41,9 +41,9 @@ func (z *zabbixClient) TokenCreate(ctx context.Context, params Token) (*tokenCre
 	return &result, nil
 }
 
-func (z *zabbixClient) TokenGenerate(ctx context.Context, params TokenGenerateParameters) ([]tokenGenerateResponse, error) {
+func (z *zabbixClient) TokenGenerate(ctx context.Context, params TokenGenerateParameters) ([]TokenGenerateResponse, error) {
 
-	var result []tokenGenerateResponse
+	var result []TokenGenerateResponse
 
 	err := z.makeRequest(ctx, "token.generate", params, &result)
 	if err != nil {
@@ -53,9 +53,9 @@ func (z *zabbixClient) TokenGenerate(ctx context.Context, params TokenGeneratePa
 	return result, nil
 }
 
-func (z *zabbixClient) TokenDelete(ctx context.Context, params TokenDeleteParameters) (*tokenDeleteResponse, error) {
+func (z *zabbixClient) TokenDelete(ctx context.Context, params TokenDeleteParameters) (*TokenDeleteResponse, error) {
 
-	var result tokenDeleteResponse
+	var result TokenDeleteResponse
 
 	err := z.makeRequest(ctx, "token.delete", params, &result)
 	if err != nil {

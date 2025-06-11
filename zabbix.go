@@ -37,14 +37,14 @@ type Client interface {
 	HostgroupGet(ctx context.Context, params HostGroupGetParameters) ([]HostGroup, error)
 
 	ProxyGet(ctx context.Context, params ProxyGetParameters) ([]Proxy, error)
-	ProxyCreate(ctx context.Context, params ProxyCreateParameters) (*proxyCreateResponse, error)
-	ProxyDelete(ctx context.Context, params []string) (*proxyDeleteResponse, error)
+	ProxyCreate(ctx context.Context, params ProxyCreateParameters) (*ProxyCreateResponse, error)
+	ProxyDelete(ctx context.Context, params []string) (*ProxyDeleteResponse, error)
 
 	TemplateGet(ctx context.Context, params TemplateGetParameters) ([]Template, error)
 
-	TokenCreate(ctx context.Context, params Token) (*tokenCreateResponse, error)
-	TokenGenerate(ctx context.Context, params TokenGenerateParameters) ([]tokenGenerateResponse, error)
-	TokenDelete(ctx context.Context, params TokenDeleteParameters) (*tokenDeleteResponse, error)
+	TokenCreate(ctx context.Context, params Token) (*TokenCreateResponse, error)
+	TokenGenerate(ctx context.Context, params TokenGenerateParameters) ([]TokenGenerateResponse, error)
+	TokenDelete(ctx context.Context, params TokenDeleteParameters) (*TokenDeleteResponse, error)
 
 	Logout(ctx context.Context) (LogoutSuccess, error)
 }

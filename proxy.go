@@ -53,11 +53,11 @@ type ProxyCreateParameters struct {
 	Hosts []Host `json:"hosts,omitempty"`
 }
 
-type proxyCreateResponse struct {
+type ProxyCreateResponse struct {
 	ProxyIDs []string `json:"proxyids"` // IDs of the created proxies
 }
 
-type proxyDeleteResponse struct {
+type ProxyDeleteResponse struct {
 	ProxyIDs []string `json:"proxyids"` // IDs of the deleted proxies
 }
 
@@ -73,9 +73,9 @@ func (z *zabbixClient) ProxyGet(ctx context.Context, params ProxyGetParameters) 
 	return result, nil
 }
 
-func (z *zabbixClient) ProxyCreate(ctx context.Context, params ProxyCreateParameters) (*proxyCreateResponse, error) {
+func (z *zabbixClient) ProxyCreate(ctx context.Context, params ProxyCreateParameters) (*ProxyCreateResponse, error) {
 
-	var result proxyCreateResponse
+	var result ProxyCreateResponse
 
 	err := z.makeRequest(ctx, "proxy.create", params, &result)
 	if err != nil {
@@ -85,9 +85,9 @@ func (z *zabbixClient) ProxyCreate(ctx context.Context, params ProxyCreateParame
 	return &result, nil
 }
 
-func (z *zabbixClient) ProxyDelete(ctx context.Context, params []string) (*proxyDeleteResponse, error) {
+func (z *zabbixClient) ProxyDelete(ctx context.Context, params []string) (*ProxyDeleteResponse, error) {
 
-	var result proxyDeleteResponse
+	var result ProxyDeleteResponse
 
 	err := z.makeRequest(ctx, "proxy.delete", params, &result)
 	if err != nil {
