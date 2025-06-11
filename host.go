@@ -81,21 +81,21 @@ type HostGetParameters struct {
 	SearchInventory        map[string]string `json:"searchInventory,omitempty"`
 }
 
-type hostCreateResponse struct {
+type HostCreateResponse struct {
 	HostIDs []string `json:"hostids"` // IDs of the created hosts
 }
 
-type hostDeleteResponse struct {
+type HostDeleteResponse struct {
 	HostIDs []string `json:"hostids"` // IDs of the deleted hosts
 }
 
-type hostUpdateResponse struct {
+type HostUpdateResponse struct {
 	HostIDs []string `json:"hostids"` // IDs of the updated host
 }
 
-func (z *zabbixClient) HostCreate(ctx context.Context, params Host) (*hostCreateResponse, error) {
+func (z *zabbixClient) HostCreate(ctx context.Context, params Host) (*HostCreateResponse, error) {
 
-	var result hostCreateResponse
+	var result HostCreateResponse
 
 	err := z.makeRequest(ctx, "host.create", params, &result)
 	if err != nil {
@@ -105,9 +105,9 @@ func (z *zabbixClient) HostCreate(ctx context.Context, params Host) (*hostCreate
 	return &result, err
 }
 
-func (z *zabbixClient) HostDelete(ctx context.Context, params []string) (*hostDeleteResponse, error) {
+func (z *zabbixClient) HostDelete(ctx context.Context, params []string) (*HostDeleteResponse, error) {
 
-	var result hostDeleteResponse
+	var result HostDeleteResponse
 
 	err := z.makeRequest(ctx, "host.delete", params, &result)
 	if err != nil {
@@ -117,9 +117,9 @@ func (z *zabbixClient) HostDelete(ctx context.Context, params []string) (*hostDe
 	return &result, nil
 }
 
-func (z *zabbixClient) HostUpdate(ctx context.Context, params Host) (*hostUpdateResponse, error) {
+func (z *zabbixClient) HostUpdate(ctx context.Context, params Host) (*HostUpdateResponse, error) {
 
-	var result hostUpdateResponse
+	var result HostUpdateResponse
 
 	err := z.makeRequest(ctx, "host.update", params, &result)
 	if err != nil {

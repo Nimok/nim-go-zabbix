@@ -30,9 +30,9 @@ type Client interface {
 	StopTokenRefresher()
 
 	HostGet(ctx context.Context, params HostGetParameters) ([]Host, error)
-	HostCreate(ctx context.Context, params Host) (*hostCreateResponse, error)
-	HostDelete(ctx context.Context, params []string) (*hostDeleteResponse, error)
-	HostUpdate(ctx context.Context, params Host) (*hostUpdateResponse, error)
+	HostCreate(ctx context.Context, params Host) (*HostCreateResponse, error)
+	HostDelete(ctx context.Context, params []string) (*HostDeleteResponse, error)
+	HostUpdate(ctx context.Context, params Host) (*HostUpdateResponse, error)
 
 	HostgroupGet(ctx context.Context, params HostGroupGetParameters) ([]HostGroup, error)
 
