@@ -21,7 +21,7 @@ type Host struct {
 	MonitoredBy       int             `json:"monitored_by,omitempty"`       // Source used to monitor the host (0 - Zabbix server; 1 - Proxy; 2 - Proxy group)
 	ProxyID           string          `json:"proxyid,omitempty"`            // ID of the proxy monitoring the host (required if 'monitored_by' is set to Proxy)
 	ProxyGroupID      string          `json:"proxy_groupid,omitempty"`      // ID of the proxy group monitoring the host (required if 'monitored_by' is set to Proxy group)
-	Status            int             `json:"status,omitempty"`             // Status and function of the host (0 - monitored; 1 - unmonitored)
+	Status            int             `json:"status"`                       // Status and function of the host (0 - monitored; 1 - unmonitored)
 	TlsConnect        int             `json:"tls_connect,omitempty"`        // Connections to host (1 - No encryption; 2 - PSK; 4 - certificate)
 	TlsAccept         int             `json:"tls_accept,omitempty"`         // Connections from host (bitmask: 1 - No encryption; 2 - PSK; 4 - certificate)
 	TlsIssuer         string          `json:"tls_issuer,omitempty"`         // Certificate issuer
@@ -81,21 +81,21 @@ type HostGetParameters struct {
 	SearchInventory        map[string]string `json:"searchInventory,omitempty"`
 }
 
-type hostCreateResponse struct {
+type HostCreateResponse struct {
 	HostIDs []string `json:"hostids"` // IDs of the created hosts
 }
 
-type hostDeleteResponse struct {
+type HostDeleteResponse struct {
 	HostIDs []string `json:"hostids"` // IDs of the deleted hosts
 }
 
-type hostUpdateResponse struct {
+type HostUpdateResponse struct {
 	HostIDs []string `json:"hostids"` // IDs of the updated host
 }
 
-func (z *zabbixClient) HostCreate(ctx context.Context, params Host) (*hostCreateResponse, error) {
+func (z *zabbixClient) HostCreate(ctx context.Context, params Host) (*HostCreateResponse, error) {
 
-	var result hostCreateResponse
+	var result HostCreateResponse
 
 	err := z.makeRequest(ctx, "host.create", params, &result)
 	if err != nil {
@@ -105,9 +105,9 @@ func (z *zabbixClient) HostCreate(ctx context.Context, params Host) (*hostCreate
 	return &result, err
 }
 
-func (z *zabbixClient) HostDelete(ctx context.Context, params []string) (*hostDeleteResponse, error) {
+func (z *zabbixClient) HostDelete(ctx context.Context, params []string) (*HostDeleteResponse, error) {
 
-	var result hostDeleteResponse
+	var result HostDeleteResponse
 
 	err := z.makeRequest(ctx, "host.delete", params, &result)
 	if err != nil {
@@ -117,9 +117,9 @@ func (z *zabbixClient) HostDelete(ctx context.Context, params []string) (*hostDe
 	return &result, nil
 }
 
-func (z *zabbixClient) HostUpdate(ctx context.Context, params Host) (*hostUpdateResponse, error) {
+func (z *zabbixClient) HostUpdate(ctx context.Context, params Host) (*HostUpdateResponse, error) {
 
-	var result hostUpdateResponse
+	var result HostUpdateResponse
 
 	err := z.makeRequest(ctx, "host.update", params, &result)
 	if err != nil {

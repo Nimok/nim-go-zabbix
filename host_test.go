@@ -98,6 +98,7 @@ func TestHostCreateAndUpdate(t *testing.T) {
 	host := zabbix.Host{
 		Host:        "test-host",
 		Description: "Test host",
+		Status:      1,
 		Interfaces: []zabbix.HostInterface{
 			{
 				Type:  1,
@@ -136,6 +137,7 @@ func TestHostCreateAndUpdate(t *testing.T) {
 	updatedHost := zabbix.Host{
 		HostID:      hostResp.HostIDs[0],
 		Description: "Updated test host",
+		Status:      0,
 	}
 
 	_, err = client.HostUpdate(ctx, updatedHost)
@@ -144,9 +146,22 @@ func TestHostCreateAndUpdate(t *testing.T) {
 		t.Fail()
 	}
 
+	newHost, err := client.HostGet(ctx, zabbix.HostGetParameters{
+		HostIDs: hostResp.HostIDs,
+	})
+	if err != nil {
+		t.Log(err)
+		t.Fail()
+	}
+
 	_, err = client.HostDelete(ctx, hostResp.HostIDs)
 	if err != nil {
 		t.Log(err)
+		t.Fail()
+	}
+
+	if newHost[0].Status == host.Status {
+		t.Log("Status did not update")
 		t.Fail()
 	}
 
