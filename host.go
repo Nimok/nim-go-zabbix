@@ -21,7 +21,7 @@ type Host struct {
 	MonitoredBy       int             `json:"monitored_by,omitempty"`       // Source used to monitor the host (0 - Zabbix server; 1 - Proxy; 2 - Proxy group)
 	ProxyID           string          `json:"proxyid,omitempty"`            // ID of the proxy monitoring the host (required if 'monitored_by' is set to Proxy)
 	ProxyGroupID      string          `json:"proxy_groupid,omitempty"`      // ID of the proxy group monitoring the host (required if 'monitored_by' is set to Proxy group)
-	Status            int             `json:"status,omitempty"`             // Status and function of the host (0 - monitored; 1 - unmonitored)
+	Status            int             `json:"status"`                       // Status and function of the host (0 - monitored; 1 - unmonitored)
 	TlsConnect        int             `json:"tls_connect,omitempty"`        // Connections to host (1 - No encryption; 2 - PSK; 4 - certificate)
 	TlsAccept         int             `json:"tls_accept,omitempty"`         // Connections from host (bitmask: 1 - No encryption; 2 - PSK; 4 - certificate)
 	TlsIssuer         string          `json:"tls_issuer,omitempty"`         // Certificate issuer
