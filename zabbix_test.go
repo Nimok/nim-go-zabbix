@@ -107,6 +107,7 @@ func teardown(bootstrapTokenId string) {
 	if err != nil {
 		fmt.Println("cleanup failed, you might need to do some manual cleanup")
 	}
+	client.Logout(ctx)
 }
 
 func TestClientWithoutAnyAuthMethod(t *testing.T) {

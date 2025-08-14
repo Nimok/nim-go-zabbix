@@ -31,8 +31,13 @@ type Client interface {
 
 	HostGet(ctx context.Context, params HostGetParameters) ([]Host, error)
 	HostCreate(ctx context.Context, params Host) (*HostCreateResponse, error)
-	HostDelete(ctx context.Context, params []string) (*HostDeleteResponse, error)
 	HostUpdate(ctx context.Context, params Host) (*HostUpdateResponse, error)
+	HostDelete(ctx context.Context, params []string) (*HostDeleteResponse, error)
+
+	HostInterfaceGet(ctx context.Context, params HostInterfaceGetParams) ([]HostInterface, error)
+	HostInterfaceCreate(ctx context.Context, params HostInterface) (*HostInterfaceCreateResponse, error)
+	HostInterfaceUpdate(ctx context.Context, params HostInterface) (*HostInterfaceUpdateResponse, error)
+	HostInterfaceDelete(ctx context.Context, params []string) (*HostInterfaceDeleteResponse, error)
 
 	HostgroupGet(ctx context.Context, params HostGroupGetParameters) ([]HostGroup, error)
 

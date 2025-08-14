@@ -102,7 +102,7 @@ func (z *zabbixClient) HostCreate(ctx context.Context, params Host) (*HostCreate
 		return nil, err
 	}
 
-	return &result, err
+	return &result, nil
 }
 
 func (z *zabbixClient) HostDelete(ctx context.Context, params []string) (*HostDeleteResponse, error) {
