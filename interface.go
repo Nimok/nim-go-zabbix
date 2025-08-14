@@ -1,5 +1,7 @@
 package zabbix
 
+import "context"
+
 // InterfaceType represents the type of interface.
 type InterfaceType int
 
@@ -115,4 +117,73 @@ type InterfaceDetails struct {
 	AuthProtocol   AuthProtocol  `json:"authprotocol,omitempty"`    // SNMPv3 only
 	PrivProtocol   PrivProtocol  `json:"privprotocol,omitempty"`    // SNMPv3 only
 	ContextName    string        `json:"contextname,omitempty"`     // SNMPv3 only
+}
+
+type HostInterfaceGetParams struct {
+	GetParameters
+
+	HostIDs      []string `json:"hostids,omitempty"`      // string or []string
+	InterfaceIDs []string `json:"interfaceids,omitempty"` // string or []string
+	ItemIDs      []string `json:"itemids,omitempty"`      // string or []string
+	TriggerIDs   []string `json:"triggerids,omitempty"`   // string or []string
+}
+
+type HostInterfaceCreateResponse struct {
+	HostInterfaceIDs []string `json:"interfaceids"` // IDs of the created HostInterfaces
+}
+
+type HostInterfaceDeleteResponse struct {
+	HostInterfaceIDs []string `json:"interfaceids"` // IDs of the deleted HostInterfaces
+}
+
+type HostInterfaceUpdateResponse struct {
+	HostInterfaceIDs []string `json:"interfaceids"` // IDs of the updated HostInterface
+}
+
+func (z *zabbixClient) HostInterfaceGet(ctx context.Context, params HostInterfaceGetParams) ([]HostInterface, error) {
+
+	var result []HostInterface
+
+	err := z.makeRequest(ctx, "hostinterface.get", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (z *zabbixClient) HostInterfaceCreate(ctx context.Context, params HostInterface) (*HostInterfaceCreateResponse, error) {
+
+	var result HostInterfaceCreateResponse
+
+	err := z.makeRequest(ctx, "hostinterface.create", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (z *zabbixClient) HostInterfaceUpdate(ctx context.Context, params HostInterface) (*HostInterfaceUpdateResponse, error) {
+
+	var result HostInterfaceUpdateResponse
+
+	err := z.makeRequest(ctx, "hostinterface.update", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (z *zabbixClient) HostInterfaceDelete(ctx context.Context, params []string) (*HostInterfaceDeleteResponse, error) {
+
+	var result HostInterfaceDeleteResponse
+
+	err := z.makeRequest(ctx, "hostinterface.delete", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
