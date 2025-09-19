@@ -41,7 +41,7 @@ func TestHostInterfaceCreateAndDelete(t *testing.T) {
 		},
 	}
 
-	hostResp, err := client.HostCreate(ctx, host)
+	hostResp, err := client.HostCreate(ctx, []zabbix.Host{host})
 	if err != nil {
 		t.Log(err)
 		t.FailNow()

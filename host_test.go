@@ -59,7 +59,7 @@ func TestHostCreateAndDelete(t *testing.T) {
 		},
 	}
 
-	hostResp, err := client.HostCreate(ctx, host)
+	hostResp, err := client.HostCreate(ctx, []zabbix.Host{host})
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -95,10 +95,11 @@ func TestHostCreateAndUpdate(t *testing.T) {
 	}
 
 	// Create a host
+	status := 1
 	host := zabbix.Host{
 		Host:        "test-host",
 		Description: "Test host",
-		Status:      1,
+		Status:      &status,
 		Interfaces: []zabbix.HostInterface{
 			{
 				Type:  1,
@@ -127,17 +128,18 @@ func TestHostCreateAndUpdate(t *testing.T) {
 		},
 	}
 
-	hostResp, err := client.HostCreate(ctx, host)
+	hostResp, err := client.HostCreate(ctx, []zabbix.Host{host})
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
 	}
 	t.Logf("Host created with ID: %s", hostResp.HostIDs[0])
 
+	updatedStatus := 0
 	updatedHost := zabbix.Host{
 		HostID:      hostResp.HostIDs[0],
 		Description: "Updated test host",
-		Status:      0,
+		Status:      &updatedStatus,
 	}
 
 	_, err = client.HostUpdate(ctx, updatedHost)
@@ -214,7 +216,7 @@ func TestHostCreateFailMissingPort(t *testing.T) {
 		},
 	}
 
-	_, err = client.HostCreate(ctx, host)
+	_, err = client.HostCreate(ctx, []zabbix.Host{host})
 	if err == nil {
 		t.Log(err)
 		t.FailNow()
@@ -327,7 +329,7 @@ func TestHostCreateMonitoredByProxy(t *testing.T) {
 		ProxyID:     proxyId,
 	}
 
-	hostResp, err := client.HostCreate(ctx, hostToCreate)
+	hostResp, err := client.HostCreate(ctx, []zabbix.Host{hostToCreate})
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -357,5 +359,123 @@ func TestHostCreateMonitoredByProxy(t *testing.T) {
 
 	if ok != true {
 		t.Fatal("logout failed")
+	}
+}
+
+func TestHostCreateAndMassAdd(t *testing.T) {
+	ctx := context.Background()
+
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+
+	if err := client.Authenticate(); err != nil {
+		t.Log("Initial auth failed:", err)
+		t.FailNow()
+	}
+	status := 0
+	host1 := zabbix.Host{
+		Host:        "test-host",
+		Description: "Test host",
+		Status:      &status,
+		Interfaces: []zabbix.HostInterface{
+			{
+				Type:  1,
+				Main:  1,
+				UseIP: 1,
+				IP:    "127.0.0.1",
+				Port:  "10050",
+			},
+		},
+		Groups: []zabbix.HostGroup{
+			{
+				GroupID: "2",
+			},
+		},
+		Templates: []zabbix.Template{
+			{
+				TemplateID: "10001",
+			},
+		},
+		Macros: []zabbix.Macro{
+			{
+				Macro:       "{$MACRO_NAME}",
+				Value:       "macro value",
+				Description: "Test macro",
+			},
+		},
+	}
+
+	host2 := zabbix.Host{
+		Host:        "test-host2",
+		Description: "Test host2",
+		Status:      &status,
+		Interfaces: []zabbix.HostInterface{
+			{
+				Type:  1,
+				Main:  1,
+				UseIP: 1,
+				IP:    "127.0.0.1",
+				Port:  "10050",
+			},
+		},
+		Groups: []zabbix.HostGroup{
+			{
+				GroupID: "2",
+			},
+		},
+		Templates: []zabbix.Template{
+			{
+				TemplateID: "10001",
+			},
+		},
+		Macros: []zabbix.Macro{
+			{
+				Macro:       "{$MACRO_NAME}",
+				Value:       "macro value",
+				Description: "Test macro",
+			},
+		},
+	}
+
+	createResp, err := client.HostCreate(ctx, []zabbix.Host{host1, host2})
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+
+	addResp, err := client.HostMassAdd(ctx, zabbix.HostMassAddParams{
+		Hosts: []zabbix.Host{
+			{HostID: createResp.HostIDs[0]},
+			{HostID: createResp.HostIDs[1]},
+		},
+		Macros: []zabbix.Macro{
+			{
+				Macro: "{$TEST1}",
+				Value: "MACROTEST1",
+			},
+			{
+				Macro:       "{$TEST2}",
+				Value:       "MACROTEST2",
+				Description: "Test macro 2",
+			},
+		},
+	})
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+
+	if len(addResp.HostIDs) != 2 {
+		t.Log("Expected 2 hosts to be added, got", len(addResp.HostIDs))
+		t.FailNow()
+	}
+
+	_, err = client.HostDelete(ctx, []string{createResp.HostIDs[0], createResp.HostIDs[1]})
+	if err != nil {
+		t.Log(err)
+		t.Fail()
 	}
 }
