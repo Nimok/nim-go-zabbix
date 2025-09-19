@@ -59,7 +59,7 @@ func TestHostCreateAndDelete(t *testing.T) {
 		},
 	}
 
-	hostResp, err := client.HostCreate(ctx, host)
+	hostResp, err := client.HostCreate(ctx, []zabbix.Host{host})
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -128,7 +128,7 @@ func TestHostCreateAndUpdate(t *testing.T) {
 		},
 	}
 
-	hostResp, err := client.HostCreate(ctx, host)
+	hostResp, err := client.HostCreate(ctx, []zabbix.Host{host})
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -216,7 +216,7 @@ func TestHostCreateFailMissingPort(t *testing.T) {
 		},
 	}
 
-	_, err = client.HostCreate(ctx, host)
+	_, err = client.HostCreate(ctx, []zabbix.Host{host})
 	if err == nil {
 		t.Log(err)
 		t.FailNow()
@@ -329,7 +329,7 @@ func TestHostCreateMonitoredByProxy(t *testing.T) {
 		ProxyID:     proxyId,
 	}
 
-	hostResp, err := client.HostCreate(ctx, hostToCreate)
+	hostResp, err := client.HostCreate(ctx, []zabbix.Host{hostToCreate})
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -440,13 +440,7 @@ func TestHostCreateAndMassAdd(t *testing.T) {
 		},
 	}
 
-	hostResp1, err := client.HostCreate(ctx, host1)
-	if err != nil {
-		t.Log(err)
-		t.FailNow()
-	}
-
-	hostResp2, err := client.HostCreate(ctx, host2)
+	createResp, err := client.HostCreate(ctx, []zabbix.Host{host1, host2})
 	if err != nil {
 		t.Log(err)
 		t.FailNow()
@@ -454,8 +448,8 @@ func TestHostCreateAndMassAdd(t *testing.T) {
 
 	addResp, err := client.HostMassAdd(ctx, zabbix.HostMassAddParams{
 		Hosts: []zabbix.Host{
-			{HostID: hostResp1.HostIDs[0]},
-			{HostID: hostResp2.HostIDs[0]},
+			{HostID: createResp.HostIDs[0]},
+			{HostID: createResp.HostIDs[1]},
 		},
 		Macros: []zabbix.Macro{
 			{
@@ -479,7 +473,7 @@ func TestHostCreateAndMassAdd(t *testing.T) {
 		t.FailNow()
 	}
 
-	_, err = client.HostDelete(ctx, []string{hostResp1.HostIDs[0], hostResp2.HostIDs[0]})
+	_, err = client.HostDelete(ctx, []string{createResp.HostIDs[0], createResp.HostIDs[1]})
 	if err != nil {
 		t.Log(err)
 		t.Fail()

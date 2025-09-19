@@ -105,7 +105,7 @@ type HostMassAddResponse struct {
 	HostIDs []string `json:"hostids"` // IDs of the created hosts
 }
 
-func (z *zabbixClient) HostCreate(ctx context.Context, params Host) (*HostCreateResponse, error) {
+func (z *zabbixClient) HostCreate(ctx context.Context, params []Host) (*HostCreateResponse, error) {
 
 	var result HostCreateResponse
 
