@@ -21,7 +21,7 @@ type Host struct {
 	MonitoredBy       int             `json:"monitored_by,omitempty"`       // Source used to monitor the host (0 - Zabbix server; 1 - Proxy; 2 - Proxy group)
 	ProxyID           string          `json:"proxyid,omitempty"`            // ID of the proxy monitoring the host (required if 'monitored_by' is set to Proxy)
 	ProxyGroupID      string          `json:"proxy_groupid,omitempty"`      // ID of the proxy group monitoring the host (required if 'monitored_by' is set to Proxy group)
-	Status            int             `json:"status"`                       // Status and function of the host (0 - monitored; 1 - unmonitored)
+	Status            *int            `json:"status,omitempty"`             // Status and function of the host (0 - monitored; 1 - unmonitored)
 	TlsConnect        int             `json:"tls_connect,omitempty"`        // Connections to host (1 - No encryption; 2 - PSK; 4 - certificate)
 	TlsAccept         int             `json:"tls_accept,omitempty"`         // Connections from host (bitmask: 1 - No encryption; 2 - PSK; 4 - certificate)
 	TlsIssuer         string          `json:"tls_issuer,omitempty"`         // Certificate issuer
@@ -35,7 +35,7 @@ type Host struct {
 	Tags              []Tag           `json:"tags,omitempty"`               // Tags associated with the host
 	Templates         []Template      `json:"templates,omitempty"`          // Templates linked to the host
 	Macros            []Macro         `json:"macros,omitempty"`             // User macros created for the host
-	Inventory         Inventory       `json:"inventory,omitempty"`          // Inventory properties of the host
+	Inventory         *Inventory      `json:"inventory,omitempty"`          // Inventory properties of the host
 }
 
 type HostGetParameters struct {
@@ -81,6 +81,14 @@ type HostGetParameters struct {
 	SearchInventory        map[string]string `json:"searchInventory,omitempty"`
 }
 
+type HostMassAddParams struct {
+	Hosts      []Host          `json:"hosts"`
+	Groups     []HostGroup     `json:"groups,omitempty"`
+	Interfaces []HostInterface `json:"interfaces,omitempty"`
+	Macros     []Macro         `json:"macros,omitempty"`
+	Templates  []Template      `json:"templates,omitempty"`
+}
+
 type HostCreateResponse struct {
 	HostIDs []string `json:"hostids"` // IDs of the created hosts
 }
@@ -91,6 +99,10 @@ type HostDeleteResponse struct {
 
 type HostUpdateResponse struct {
 	HostIDs []string `json:"hostids"` // IDs of the updated host
+}
+
+type HostMassAddResponse struct {
+	HostIDs []string `json:"hostids"` // IDs of the created hosts
 }
 
 func (z *zabbixClient) HostCreate(ctx context.Context, params Host) (*HostCreateResponse, error) {
@@ -139,4 +151,16 @@ func (z *zabbixClient) HostGet(ctx context.Context, params HostGetParameters) ([
 	}
 
 	return result, nil
+}
+
+func (z *zabbixClient) HostMassAdd(ctx context.Context, params HostMassAddParams) (*HostMassAddResponse, error) {
+
+	var result HostMassAddResponse
+
+	err := z.makeRequest(ctx, "host.massadd", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
 }
