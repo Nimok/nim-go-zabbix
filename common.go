@@ -18,4 +18,5 @@ type GetParameters struct {
 	SelectItems            any               `json:"selectItems,omitempty"`
 	SelectTriggers         any               `json:"selectTriggers,omitempty"`
 	// Add other select parameters as needed
+
 }

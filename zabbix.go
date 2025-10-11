@@ -42,6 +42,8 @@ type Client interface {
 
 	HostgroupGet(ctx context.Context, params HostGroupGetParameters) ([]HostGroup, error)
 
+	ProblemGet(ctx context.Context, params ProblemGetParams) (*[]Problem, error)
+
 	ProxyGet(ctx context.Context, params ProxyGetParameters) ([]Proxy, error)
 	ProxyCreate(ctx context.Context, params ProxyCreateParameters) (*ProxyCreateResponse, error)
 	ProxyDelete(ctx context.Context, params []string) (*ProxyDeleteResponse, error)
@@ -54,6 +56,8 @@ type Client interface {
 
 	Logout(ctx context.Context) (LogoutSuccess, error)
 }
+
+var _ Client = (*zabbixClient)(nil)
 
 type zabbixClient struct {
 	url      string
@@ -133,20 +137,13 @@ func (c *zabbixClient) StartTokenRefresher(refreshInterval time.Duration) error 
 		ticker := time.NewTicker(refreshInterval)
 
 		defer ticker.Stop()
-		fmt.Println("[INFO] Starting token refresher...")
 		for {
 			select {
 			case <-ticker.C:
-				fmt.Println("[INFO] Refreshing token...")
 				if err := c.Authenticate(); err != nil {
-					fmt.Println("[ERROR] Token refresh failed:", err)
 					c.errorCallback(err)
-				} else {
-					fmt.Println("[INFO] Token refreshed successfully.")
 				}
-
 			case <-c.stopChan:
-				fmt.Println("[INFO] Token refresher stopped.")
 				return
 			}
 		}
