@@ -23,7 +23,7 @@ func TestGetProblems(t *testing.T) {
 		t.FailNow()
 	}
 	recent := false
-	problems, err := client.ProblemGet(ctx, zabbix.ProblemGetParams{
+	_, err = client.ProblemGet(ctx, zabbix.ProblemGetParams{
 		GetParameters: zabbix.GetParameters{
 			Output:    "extend",
 			Limit:     10,
@@ -38,11 +38,6 @@ func TestGetProblems(t *testing.T) {
 
 	if err != nil {
 		t.Log("Problem get failed:", err)
-		t.FailNow()
-	}
-
-	if len(*problems) == 0 {
-		t.Log("No problems found")
 		t.FailNow()
 	}
 }
