@@ -291,7 +291,7 @@ func TestHostCreateMonitoredByProxy(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-
+	monitoredBy := zabbix.MonitoredByProxy
 	hostToCreate := zabbix.Host{
 		Host: hostname,
 		Groups: []zabbix.HostGroup{
@@ -325,7 +325,7 @@ func TestHostCreateMonitoredByProxy(t *testing.T) {
 				Value: community,
 			},
 		},
-		MonitoredBy: zabbix.MonitoredByProxy,
+		MonitoredBy: &monitoredBy,
 		ProxyID:     proxyId,
 	}
 
