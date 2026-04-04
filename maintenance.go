@@ -72,8 +72,22 @@ type MaintenanceCreateParams struct {
 	Maintenance
 }
 
+type MaintenanceUpdateParams struct {
+	Maintenance
+}
+
+type MaintenanceDeleteParams []string
+
 type MaintenanceCreateResponse struct {
 	MaintenanceIDs []string `json:"maintenanceids"` // IDs of the created maintenances
+}
+
+type MaintenanceUpdateResponse struct {
+	MaintenanceIDs []string `json:"maintenanceids"` // IDs of the updated maintenances
+}
+
+type MaintenanceDeleteResponse struct {
+	MaintenanceIDs []string `json:"maintenanceids"` // IDs of the deleted maintenances
 }
 
 func (z *zabbixClient) MaintenanceGet(ctx context.Context, params MaintenanceGetParams) (*[]Maintenance, error) {
@@ -93,6 +107,30 @@ func (z *zabbixClient) MaintenanceCreate(ctx context.Context, params Maintenance
 	var result MaintenanceCreateResponse
 
 	err := z.makeRequest(ctx, "maintenance.create", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (z *zabbixClient) MaintenanceUpdate(ctx context.Context, params MaintenanceUpdateParams) (*MaintenanceUpdateResponse, error) {
+
+	var result MaintenanceUpdateResponse
+
+	err := z.makeRequest(ctx, "maintenance.update", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (z *zabbixClient) MaintenanceDelete(ctx context.Context, params MaintenanceDeleteParams) (*MaintenanceDeleteResponse, error) {
+
+	var result MaintenanceDeleteResponse
+
+	err := z.makeRequest(ctx, "maintenance.delete", params, &result)
 	if err != nil {
 		return nil, err
 	}
