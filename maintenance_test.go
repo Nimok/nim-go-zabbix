@@ -28,9 +28,9 @@ func TestGetMaintenance(t *testing.T) {
 			Output: "extend",
 			Limit:  10,
 		},
-		SelectHosts:      "extend",
-		SelectHostGroups: "extend",
-		SelectTags:       "extend",
+		SelectHosts:  "extend",
+		SelectGroups: "extend",
+		SelectTags:   "extend",
 	})
 
 	if err != nil {

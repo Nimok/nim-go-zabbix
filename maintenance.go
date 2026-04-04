@@ -62,7 +62,7 @@ type MaintenanceGetParams struct {
 	HostIDs        []string `json:"hostids,omitempty"`
 	MaintenanceIDs []string `json:"maintenanceids,omitempty"`
 
-	SelectHostGroups  any `json:"selectHostGroups,omitempty"`
+	SelectGroups      any `json:"selectGroups,omitempty"`
 	SelectHosts       any `json:"selectHosts,omitempty"`
 	SelectTags        any `json:"selectTags,omitempty"`
 	SelectTimeperiods any `json:"selectTimeperiods,omitempty"`
@@ -78,17 +78,11 @@ type MaintenanceUpdateParams struct {
 
 type MaintenanceDeleteParams []string
 
-type MaintenanceCreateResponse struct {
-	MaintenanceIDs []string `json:"maintenanceids"` // IDs of the created maintenances
-}
+type MaintenanceCreateResponse = MaintenanceIDsResult
 
-type MaintenanceUpdateResponse struct {
-	MaintenanceIDs []string `json:"maintenanceids"` // IDs of the updated maintenances
-}
+type MaintenanceUpdateResponse = MaintenanceIDsResult
 
-type MaintenanceDeleteResponse struct {
-	MaintenanceIDs []string `json:"maintenanceids"` // IDs of the deleted maintenances
-}
+type MaintenanceDeleteResponse = MaintenanceIDsResult
 
 func (z *zabbixClient) MaintenanceGet(ctx context.Context, params MaintenanceGetParams) (*[]Maintenance, error) {
 
