@@ -18,7 +18,7 @@ type Host struct {
 	MaintenanceType   int             `json:"maintenance_type,omitempty"`   // Effective maintenance type (0 - with data collection; 1 - without data collection) (read-only)
 	MaintenanceID     string          `json:"maintenanceid,omitempty"`      // ID of the maintenance currently in effect on the host (read-only)
 	Name              string          `json:"name,omitempty"`               // Visible name of the host (defaults to 'host' property value)
-	MonitoredBy       int             `json:"monitored_by,omitempty"`       // Source used to monitor the host (0 - Zabbix server; 1 - Proxy; 2 - Proxy group)
+	MonitoredBy       *int            `json:"monitored_by,omitempty"`       // Source used to monitor the host (0 - Zabbix server; 1 - Proxy; 2 - Proxy group)
 	ProxyID           string          `json:"proxyid,omitempty"`            // ID of the proxy monitoring the host (required if 'monitored_by' is set to Proxy)
 	ProxyGroupID      string          `json:"proxy_groupid,omitempty"`      // ID of the proxy group monitoring the host (required if 'monitored_by' is set to Proxy group)
 	Status            *int            `json:"status,omitempty"`             // Status and function of the host (0 - monitored; 1 - unmonitored)
