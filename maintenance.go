@@ -68,11 +68,31 @@ type MaintenanceGetParams struct {
 	SelectTimeperiods any `json:"selectTimeperiods,omitempty"`
 }
 
+type MaintenanceCreateParams struct {
+	Maintenance
+}
+
+type MaintenanceCreateResponse struct {
+	MaintenanceIDs []string `json:"maintenanceids"` // IDs of the created maintenances
+}
+
 func (z *zabbixClient) MaintenanceGet(ctx context.Context, params MaintenanceGetParams) (*[]Maintenance, error) {
 
 	var result []Maintenance
 
 	err := z.makeRequest(ctx, "maintenance.get", params, &result)
+	if err != nil {
+		return nil, err
+	}
+
+	return &result, nil
+}
+
+func (z *zabbixClient) MaintenanceCreate(ctx context.Context, params MaintenanceCreateParams) (*MaintenanceCreateResponse, error) {
+
+	var result MaintenanceCreateResponse
+
+	err := z.makeRequest(ctx, "maintenance.create", params, &result)
 	if err != nil {
 		return nil, err
 	}

@@ -55,6 +55,7 @@ type Client interface {
 	TokenDelete(ctx context.Context, params TokenDeleteParameters) (*TokenDeleteResponse, error)
 
 	MaintenanceGet(ctx context.Context, params MaintenanceGetParams) (*[]Maintenance, error)
+	MaintenanceCreate(ctx context.Context, params MaintenanceCreateParams) (*MaintenanceCreateResponse, error)
 
 	Logout(ctx context.Context) (LogoutSuccess, error)
 }
