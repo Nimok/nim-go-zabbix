@@ -179,7 +179,7 @@ func (c *zabbixClient) StartTokenRefresher(refreshInterval time.Duration) error 
 			select {
 			case <-ticker.C:
 				if err := c.Authenticate(); err != nil {
-					c.errorCallback(err)
+					go c.errorCallback(err)
 				}
 			case <-stopChan:
 				return

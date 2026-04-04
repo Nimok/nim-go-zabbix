@@ -1,7 +1,11 @@
 package zabbix
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 )
@@ -100,5 +104,53 @@ func TestStopTokenRefresherConcurrentCalls(t *testing.T) {
 	case <-done:
 	case <-time.After(2 * time.Second):
 		t.Fatal("concurrent StopTokenRefresher calls timed out")
+	}
+}
+
+func TestStopTokenRefresherFromErrorCallbackDoesNotDeadlock(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json-rpc")
+		_, _ = fmt.Fprint(w, `{"jsonrpc":"2.0","error":{"code":-32602,"message":"Invalid params.","data":"auth failed"},"id":1}`)
+	}))
+	defer server.Close()
+
+	var callbackHits atomic.Int32
+	callbackDone := make(chan struct{})
+	var clientIntf Client
+	var err error
+
+	clientIntf, err = NewClient(
+		server.URL,
+		WithUserPass("user", "pass"),
+		WithErrorCallback(func(err error) {
+			callbackHits.Add(1)
+			client, ok := clientIntf.(*zabbixClient)
+			if ok {
+				client.StopTokenRefresher()
+			}
+			select {
+			case <-callbackDone:
+			default:
+				close(callbackDone)
+			}
+		}),
+	)
+	if err != nil {
+		t.Fatalf("failed to create client: %v", err)
+	}
+
+	client := clientIntf.(*zabbixClient)
+	if err := client.StartTokenRefresher(10 * time.Millisecond); err != nil {
+		t.Fatalf("failed to start refresher: %v", err)
+	}
+
+	select {
+	case <-callbackDone:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timeout waiting for error callback to stop refresher")
+	}
+
+	if callbackHits.Load() == 0 {
+		t.Fatal("expected error callback to be called at least once")
 	}
 }
