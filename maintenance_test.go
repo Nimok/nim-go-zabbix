@@ -59,7 +59,7 @@ func TestCreateMaintenance(t *testing.T) {
 			ActiveSince:     1769457981,
 			ActiveTill:      1769458981,
 			Description:     "some descr",
-			MaintenanceType: 0,
+			MaintenanceType: zabbix.MaintenanceTypeWithData,
 			Hosts: []zabbix.HostRef{
 				{
 					HostID: "10084",
@@ -67,7 +67,7 @@ func TestCreateMaintenance(t *testing.T) {
 			},
 			TimePeriods: []zabbix.MaintenanceTimePeriod{
 				{
-					TimePeriodType: 0,
+					TimePeriodType: zabbix.MaintenanceTimePeriodOneTime,
 				},
 			},
 		},
