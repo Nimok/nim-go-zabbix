@@ -73,7 +73,12 @@ type zabbixClient struct {
 	bearerToken     string
 	bearerTokenLock sync.RWMutex
 
-	stopChan      chan struct{}
+	refresherLock    sync.Mutex
+	refresherRunning bool
+	stopChan         chan struct{}
+	refresherDone    chan struct{}
+	stopOnce         *sync.Once
+
 	errorCallback func(error)
 }
 
@@ -101,7 +106,6 @@ func WithErrorCallback(callback func(error)) ClientOption {
 func NewClient(url string, opts ...ClientOption) (Client, error) {
 	client := &zabbixClient{
 		url:           url,
-		stopChan:      make(chan struct{}),
 		errorCallback: func(err error) {},
 	}
 	for _, opt := range opts {
@@ -137,18 +141,47 @@ func validateClient(c *zabbixClient) error {
 }
 
 func (c *zabbixClient) StartTokenRefresher(refreshInterval time.Duration) error {
+	if refreshInterval <= 0 {
+		return errors.New("refresh interval must be greater than 0")
+	}
+
+	c.refresherLock.Lock()
+	if c.refresherRunning {
+		c.refresherLock.Unlock()
+		return errors.New("token refresher is already running")
+	}
+
+	stopChan := make(chan struct{})
+	doneChan := make(chan struct{})
+	stopOnce := &sync.Once{}
+
+	c.stopChan = stopChan
+	c.refresherDone = doneChan
+	c.stopOnce = stopOnce
+	c.refresherRunning = true
+	c.refresherLock.Unlock()
 
 	go func() {
 		ticker := time.NewTicker(refreshInterval)
 
-		defer ticker.Stop()
+		defer func() {
+			ticker.Stop()
+			c.refresherLock.Lock()
+			c.refresherRunning = false
+			c.stopChan = nil
+			c.refresherDone = nil
+			c.stopOnce = nil
+			c.refresherLock.Unlock()
+			close(doneChan)
+		}()
+
 		for {
 			select {
 			case <-ticker.C:
 				if err := c.Authenticate(); err != nil {
-					c.errorCallback(err)
+					go c.errorCallback(err)
 				}
-			case <-c.stopChan:
+			case <-stopChan:
 				return
 			}
 		}
@@ -157,7 +190,21 @@ func (c *zabbixClient) StartTokenRefresher(refreshInterval time.Duration) error 
 }
 
 func (client *zabbixClient) StopTokenRefresher() {
-	close(client.stopChan)
+	client.refresherLock.Lock()
+	if !client.refresherRunning {
+		client.refresherLock.Unlock()
+		return
+	}
+
+	stopChan := client.stopChan
+	doneChan := client.refresherDone
+	stopOnce := client.stopOnce
+	client.refresherLock.Unlock()
+
+	stopOnce.Do(func() {
+		close(stopChan)
+	})
+	<-doneChan
 }
 
 type apiResponse struct {

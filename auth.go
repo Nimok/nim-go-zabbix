@@ -28,7 +28,9 @@ type authResponse struct {
 
 func (client *zabbixClient) Authenticate() error {
 	if client.apiToken != "" {
+		client.bearerTokenLock.Lock()
 		client.bearerToken = client.apiToken
+		client.bearerTokenLock.Unlock()
 		return nil
 	}
 
