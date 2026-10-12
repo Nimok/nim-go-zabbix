@@ -65,6 +65,10 @@ type Client interface {
 	ItemUpdate(ctx context.Context, params ItemUpdateParams) (*ItemUpdateResponse, error)
 	ItemDelete(ctx context.Context, params ItemDeleteParams) (*ItemDeleteResponse, error)
 
+	HistoryGet(ctx context.Context, params HistoryGetParams) ([]History, error)
+	HistoryClear(ctx context.Context, params HistoryClearParams) (*HistoryClearResponse, error)
+	HistoryPush(ctx context.Context, params HistoryPushParams) (*HistoryPushResponse, error)
+
 	Logout(ctx context.Context) (LogoutSuccess, error)
 }
 
