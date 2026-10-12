@@ -2,6 +2,7 @@ package zabbix_test
 
 import (
 	"context"
+	"strconv"
 	"testing"
 	"time"
 
@@ -9,38 +10,60 @@ import (
 )
 
 // pushTestHistory pushes values until the server accepts them. A newly created trapper item only
-// accepts values once the server has loaded it into its configuration cache.
-func pushTestHistory(t *testing.T, ctx context.Context, client zabbix.Client, values zabbix.HistoryPushParams) *zabbix.HistoryPushResponse {
+// accepts values once the server has loaded it into its configuration cache. history.push reports
+// acceptance per value, so only rejected values are retried to avoid storing duplicates.
+// The returned results are in the same order as values.
+func pushTestHistory(t *testing.T, ctx context.Context, client zabbix.Client, values zabbix.HistoryPushParams) []zabbix.HistoryPushResult {
 	t.Helper()
+
+	results := make([]zabbix.HistoryPushResult, len(values))
+	pending := make([]int, len(values)) // indexes into values not yet accepted
+	for i := range values {
+		pending[i] = i
+	}
 
 	deadline := time.Now().Add(90 * time.Second)
 	for {
-		resp, err := client.HistoryPush(ctx, values)
+		batch := make(zabbix.HistoryPushParams, len(pending))
+		for i, idx := range pending {
+			batch[i] = values[idx]
+		}
+
+		resp, err := client.HistoryPush(ctx, batch)
 		if err != nil {
 			t.Log("History push failed:", err)
 			t.FailNow()
 		}
 
-		var rejected string
-		for _, d := range resp.Data {
+		if resp.Response != "success" || len(resp.Data) != len(batch) {
+			t.Logf("Unexpected push response: %+v", resp)
+			t.FailNow()
+		}
+
+		var rejected []int
+		var lastErr string
+		for i, d := range resp.Data {
+			results[pending[i]] = d
 			if d.Error != "" {
-				rejected = d.Error
+				rejected = append(rejected, pending[i])
+				lastErr = d.Error
 			}
 		}
-		if rejected == "" {
-			return resp
+		if len(rejected) == 0 {
+			return results
 		}
 
 		if time.Now().After(deadline) {
-			t.Log("History push rejected:", rejected)
+			t.Log("History push rejected:", lastErr)
 			t.FailNow()
 		}
+		pending = rejected
 		time.Sleep(2 * time.Second)
 	}
 }
 
-// waitForHistory polls history.get until the item has at least want text values.
-func waitForHistory(t *testing.T, ctx context.Context, client zabbix.Client, itemID string, want int) []zabbix.History {
+// waitForHistory polls history.get until the item has at least want values of the given type.
+func waitForHistory(t *testing.T, ctx context.Context, client zabbix.Client, itemID string, valueType zabbix.ItemValueType, want int) []zabbix.History {
 	t.Helper()
 
 	deadline := time.Now().Add(30 * time.Second)
@@ -50,7 +73,7 @@ func waitForHistory(t *testing.T, ctx context.Context, client zabbix.Client, ite
 				Output:    "extend",
 				Sortfield: []string{"clock"},
 			},
-			History: zabbix.Ptr(zabbix.ItemValueTypeText),
+			History: zabbix.Ptr(valueType),
 			ItemIDs: []string{itemID},
 		})
 		if err != nil {
@@ -85,27 +108,62 @@ func TestGetHistory(t *testing.T) {
 		t.FailNow()
 	}
 
+	// Push our own float values instead of relying on data collected by the server,
+	// which a freshly started instance may not have yet.
+	suffix := time.Now().Format("20060102150405.000000")
+	itemResp, err := client.ItemCreate(ctx, zabbix.ItemCreateParams{
+		zabbix.Item{
+			HostID:    "10084",
+			Name:      "Test History Get " + suffix,
+			Key:       "test.history.float[" + suffix + "]",
+			Type:      zabbix.Ptr(zabbix.ItemTypeTrapper),
+			ValueType: zabbix.Ptr(zabbix.ItemValueTypeFloat),
+		},
+	})
+	if err != nil || len(itemResp.ItemIDs) == 0 {
+		t.Log("Item create failed:", err)
+		t.FailNow()
+	}
+	itemID := itemResp.ItemIDs[0]
+
+	defer func() {
+		_, cleanupErr := client.ItemDelete(ctx, zabbix.ItemDeleteParams{itemID})
+		if cleanupErr != nil {
+			t.Log("Item cleanup failed:", cleanupErr)
+		}
+	}()
+
+	now := time.Now().Unix()
+	pushTestHistory(t, ctx, client, zabbix.HistoryPushParams{
+		{ItemID: itemID, Value: "1.5", Clock: now - 120},
+		{ItemID: itemID, Value: "2.5", Clock: now},
+	})
+	waitForHistory(t, ctx, client, itemID, zabbix.ItemValueTypeFloat, 2)
+
+	// Only the newest value is within the time range.
 	history, err := client.HistoryGet(ctx, zabbix.HistoryGetParams{
 		GetParameters: zabbix.GetParameters{
 			Output:    "extend",
-			Limit:     10,
 			Sortfield: []string{"clock"},
 			Sortorder: "DESC",
 		},
-		History: zabbix.Ptr(zabbix.ItemValueTypeFloat),
-		HostIDs: []string{"10084"},
+		History:  zabbix.Ptr(zabbix.ItemValueTypeFloat),
+		HostIDs:  []string{"10084"},
+		ItemIDs:  []string{itemID},
+		TimeFrom: zabbix.Ptr(now - 60),
 	})
 	if err != nil {
 		t.Log("History get failed:", err)
 		t.FailNow()
 	}
 
-	if len(history) == 0 {
-		t.Log("No float history found on Zabbix server host")
+	if len(history) != 1 {
+		t.Logf("Expected 1 history value, got %d: %+v", len(history), history)
 		t.FailNow()
 	}
 
-	if history[0].ItemID == "" || history[0].Clock == "" || history[0].Value == "" {
+	value, err := strconv.ParseFloat(history[0].Value, 64)
+	if history[0].ItemID != itemID || history[0].Clock != strconv.FormatInt(now, 10) || err != nil || value != 2.5 {
 		t.Logf("History not decoded: got=%+v", history[0])
 		t.FailNow()
 	}
@@ -147,23 +205,19 @@ func TestPushHistory(t *testing.T) {
 	}
 
 	now := time.Now().Unix()
-	resp := pushTestHistory(t, ctx, client, zabbix.HistoryPushParams{
+	results := pushTestHistory(t, ctx, client, zabbix.HistoryPushParams{
 		{ItemID: itemID, Value: "first", Clock: now - 1},
 		{Host: "Zabbix server", Key: items[0].Key, Value: "second", Clock: now},
 	})
 
-	if resp.Response != "success" || len(resp.Data) != 2 {
-		t.Logf("Unexpected push response: %+v", resp)
-		t.FailNow()
-	}
-	for _, d := range resp.Data {
+	for _, d := range results {
 		if d.ItemID != itemID {
 			t.Logf("Push result item mismatch: got=%q want=%q", d.ItemID, itemID)
 			t.FailNow()
 		}
 	}
 
-	history := waitForHistory(t, ctx, client, itemID, 2)
+	history := waitForHistory(t, ctx, client, itemID, zabbix.ItemValueTypeText, 2)
 	if history[0].Value != "first" || history[1].Value != "second" {
 		t.Logf("History values mismatch: got=%+v", history)
 		t.FailNow()
@@ -197,7 +251,7 @@ func TestClearHistory(t *testing.T) {
 	pushTestHistory(t, ctx, client, zabbix.HistoryPushParams{
 		{ItemID: itemID, Value: "to be cleared"},
 	})
-	waitForHistory(t, ctx, client, itemID, 1)
+	waitForHistory(t, ctx, client, itemID, zabbix.ItemValueTypeText, 1)
 
 	clearResp, err := client.HistoryClear(ctx, zabbix.HistoryClearParams{itemID})
 	if err != nil {
