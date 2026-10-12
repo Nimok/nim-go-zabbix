@@ -59,6 +59,11 @@ type Client interface {
 	MaintenanceUpdate(ctx context.Context, params MaintenanceUpdateParams) (*MaintenanceUpdateResponse, error)
 	MaintenanceDelete(ctx context.Context, params MaintenanceDeleteParams) (*MaintenanceDeleteResponse, error)
 
+	ItemGet(ctx context.Context, params ItemGetParams) ([]Item, error)
+	ItemCreate(ctx context.Context, params ItemCreateParams) (*ItemCreateResponse, error)
+	ItemUpdate(ctx context.Context, params ItemUpdateParams) (*ItemUpdateResponse, error)
+	ItemDelete(ctx context.Context, params ItemDeleteParams) (*ItemDeleteResponse, error)
+
 	Logout(ctx context.Context) (LogoutSuccess, error)
 }
 

@@ -20,3 +20,9 @@ type GetParameters struct {
 	// Add other select parameters as needed
 
 }
+
+// Ptr returns a pointer to v. Useful for optional fields where the zero value is meaningful,
+// e.g. Item{Type: zabbix.Ptr(zabbix.ItemTypeZabbixAgent)}.
+func Ptr[T any](v T) *T {
+	return &v
+}
