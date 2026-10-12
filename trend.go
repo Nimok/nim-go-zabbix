@@ -16,10 +16,10 @@ type Trend struct {
 
 // TrendGetParams are the parameters for trend.get. Of the common get parameters trend.get only
 // supports output, countOutput and limit, so they are listed here instead of embedding GetParameters.
+// countOutput is left out because it makes trend.get return a scalar count instead of []Trend.
 type TrendGetParams struct {
-	Output      any  `json:"output,omitempty"`
-	CountOutput bool `json:"countOutput,omitempty"`
-	Limit       int  `json:"limit,omitempty"`
+	Output any `json:"output,omitempty"`
+	Limit  int `json:"limit,omitempty"`
 
 	ItemIDs []string `json:"itemids,omitempty"`
 
