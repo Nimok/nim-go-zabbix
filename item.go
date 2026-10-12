@@ -34,9 +34,12 @@ type Item struct {
 	TrapperHosts string `json:"trapper_hosts,omitempty"` // allowed hosts for trapper / HTTP agent with AllowTraps
 	AllowTraps   *int   `json:"allow_traps,omitempty"`   // HTTP agent; 0 no, 1 yes
 	SNMPOID      string `json:"snmp_oid,omitempty"`      // required for ItemTypeSNMPAgent
+	IPMISensor   string `json:"ipmi_sensor,omitempty"`   // required for ItemTypeIPMIAgent
 	AuthType     int    `json:"authtype,omitempty"`      // e.g. ItemHTTPAuthBasic or ItemSSHAuthPublicKey
 	Username     string `json:"username,omitempty"`
 	Password     string `json:"password,omitempty"`
+	PublicKey    string `json:"publickey,omitempty"`  // public key file name; required for ItemSSHAuthPublicKey
+	PrivateKey   string `json:"privatekey,omitempty"` // private key file name; required for ItemSSHAuthPublicKey
 
 	// HTTP agent
 	URL             string          `json:"url,omitempty"` // required for ItemTypeHTTPAgent
@@ -71,6 +74,47 @@ type Item struct {
 	LastNs     int    `json:"lastns,omitempty"`
 	LastValue  string `json:"lastvalue,omitempty"`
 	PrevValue  string `json:"prevvalue,omitempty"`
+
+	// Returned by item.get when the matching Select* parameter is set
+	Interfaces    []HostInterface    `json:"interfaces,omitempty"`    // SelectInterfaces
+	ValueMap      *ItemValueMap      `json:"valuemap,omitempty"`      // SelectValueMap; nil if the item has no value map
+	DiscoveryRule *ItemDiscoveryRule `json:"discoveryRule,omitempty"` // SelectDiscoveryRule; nil if the item was not discovered
+	ItemDiscovery *ItemDiscovery     `json:"itemDiscovery,omitempty"` // SelectItemDiscovery; nil if the item was not discovered
+}
+
+// ItemValueMap is the value map used by an item.
+type ItemValueMap struct {
+	ValueMapID string                `json:"valuemapid,omitempty"`
+	Name       string                `json:"name,omitempty"`
+	Mappings   []ItemValueMapMapping `json:"mappings,omitempty"`
+}
+
+// ItemValueMapMapping is a single value mapping in a value map.
+type ItemValueMapMapping struct {
+	Type     int    `json:"type"` // 0 equals (default), 1 >=, 2 <=, 3 range, 4 regexp, 5 default
+	Value    string `json:"value"`
+	NewValue string `json:"newvalue"`
+}
+
+// ItemDiscoveryRule is the LLD rule that created a discovered item.
+type ItemDiscoveryRule struct {
+	ItemID string `json:"itemid,omitempty"`
+	HostID string `json:"hostid,omitempty"`
+	Name   string `json:"name,omitempty"`
+	Key    string `json:"key_,omitempty"`
+}
+
+// ItemDiscovery links a discovered item to the item prototype it was created from.
+type ItemDiscovery struct {
+	ItemDiscoveryID string `json:"itemdiscoveryid,omitempty"`
+	ItemID          string `json:"itemid,omitempty"`
+	ParentItemID    string `json:"parent_itemid,omitempty"` // ID of the item prototype
+	Key             string `json:"key_,omitempty"`
+	LastCheck       int64  `json:"lastcheck,omitempty"`  // unix ts
+	Status          int    `json:"status,omitempty"`     // 0 still discovered, 1 no longer discovered
+	TsDelete        int64  `json:"ts_delete,omitempty"`  // unix ts
+	TsDisable       int64  `json:"ts_disable,omitempty"` // unix ts
+	DisableSource   int    `json:"disable_source,omitempty"`
 }
 
 // ItemNameValue is used for HTTP agent headers and query fields, and script item parameters.

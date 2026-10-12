@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"sync"
 	"time"
 
@@ -224,6 +225,7 @@ func (c *zabbixClient) makeRequest(ctx context.Context, method string, params an
 
 	mapper, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
+		DecodeHook:       emptyArrayToObjectHook,
 		Result:           res,
 		TagName:          "json",
 	})
@@ -241,4 +243,24 @@ func (c *zabbixClient) makeRequest(ctx context.Context, method string, params an
 
 	return nil
 
+}
+
+// emptyArrayToObjectHook handles Zabbix returning [] instead of an object for empty
+// object properties (e.g. item valuemap, interface details). Pointer targets are left nil,
+// struct and map targets get their zero value.
+func emptyArrayToObjectHook(from reflect.Value, to reflect.Value) (any, error) {
+	if from.Kind() != reflect.Slice || from.Len() != 0 {
+		return from.Interface(), nil
+	}
+
+	switch to.Kind() {
+	case reflect.Ptr:
+		if to.Type().Elem().Kind() == reflect.Struct {
+			return nil, nil
+		}
+	case reflect.Struct, reflect.Map:
+		return map[string]any{}, nil
+	}
+
+	return from.Interface(), nil
 }

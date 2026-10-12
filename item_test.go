@@ -82,6 +82,74 @@ func TestGetItem(t *testing.T) {
 	}
 }
 
+func TestGetItemSelects(t *testing.T) {
+
+	ctx := context.Background()
+
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+
+	if err := client.Authenticate(); err != nil {
+		t.Log("Initial auth failed:", err)
+		t.FailNow()
+	}
+
+	// Zabbix returns [] instead of an object for an empty valuemap/discoveryRule/itemDiscovery,
+	// so this also checks that those decode to nil.
+	items, err := client.ItemGet(ctx, zabbix.ItemGetParams{
+		GetParameters: zabbix.GetParameters{
+			Output: "extend",
+		},
+		HostIDs:             []string{"10084"},
+		SelectInterfaces:    "extend",
+		SelectValueMap:      "extend",
+		SelectDiscoveryRule: "extend",
+		SelectItemDiscovery: "extend",
+	})
+	if err != nil {
+		t.Log("Item get failed:", err)
+		t.FailNow()
+	}
+
+	var withInterface, withValueMap bool
+	for _, item := range items {
+		if len(item.Interfaces) > 0 && item.Interfaces[0].InterfaceID == item.InterfaceID {
+			withInterface = true
+		}
+
+		hasValueMap := item.ValueMapID != "" && item.ValueMapID != "0"
+		if hasValueMap != (item.ValueMap != nil) {
+			t.Logf("Item %s valuemap mismatch: valuemapid=%q valuemap=%+v", item.ItemID, item.ValueMapID, item.ValueMap)
+			t.FailNow()
+		}
+		if hasValueMap {
+			if item.ValueMap.ValueMapID != item.ValueMapID || len(item.ValueMap.Mappings) == 0 {
+				t.Logf("Item %s valuemap not decoded: got=%+v", item.ItemID, item.ValueMap)
+				t.FailNow()
+			}
+			withValueMap = true
+		}
+
+		if item.Flags != 4 && // 4 = discovered item
+			(item.DiscoveryRule != nil || item.ItemDiscovery != nil) {
+			t.Logf("Item %s is not discovered but has discovery data: rule=%+v discovery=%+v", item.ItemID, item.DiscoveryRule, item.ItemDiscovery)
+			t.FailNow()
+		}
+	}
+
+	if !withInterface {
+		t.Log("No item with decoded interfaces found on Zabbix server host")
+		t.FailNow()
+	}
+	if !withValueMap {
+		t.Log("No item with decoded value map found on Zabbix server host")
+		t.FailNow()
+	}
+}
+
 func TestCreateItem(t *testing.T) {
 
 	ctx := context.Background()
@@ -312,6 +380,155 @@ func TestDeleteItem(t *testing.T) {
 
 	if len(items) != 0 {
 		t.Logf("Expected item to be deleted, but found %d result(s)", len(items))
+		t.FailNow()
+	}
+}
+
+func TestCreateSSHItemPublicKey(t *testing.T) {
+
+	ctx := context.Background()
+
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+
+	if err := client.Authenticate(); err != nil {
+		t.Log("Initial auth failed:", err)
+		t.FailNow()
+	}
+
+	suffix := time.Now().Format("20060102150405.000000")
+	resp, err := client.ItemCreate(ctx, zabbix.ItemCreateParams{
+		zabbix.Item{
+			HostID:      "10084",
+			InterfaceID: "1",
+			Name:        "Test Item SSH " + suffix,
+			Key:         "ssh.run[test," + suffix + "]",
+			Type:        zabbix.Ptr(zabbix.ItemTypeSSHAgent),
+			ValueType:   zabbix.Ptr(zabbix.ItemValueTypeText),
+			Delay:       "1h",
+			Params:      "uptime",
+			AuthType:    zabbix.ItemSSHAuthPublicKey,
+			Username:    "zabbix",
+			PublicKey:   "id_ed25519.pub",
+			PrivateKey:  "id_ed25519",
+			Status:      zabbix.Ptr(zabbix.ItemStatusDisabled),
+		},
+	})
+	if err != nil {
+		t.Log("SSH item create failed:", err)
+		t.FailNow()
+	}
+
+	defer func() {
+		_, cleanupErr := client.ItemDelete(ctx, zabbix.ItemDeleteParams(resp.ItemIDs))
+		if cleanupErr != nil {
+			t.Log("Item cleanup failed:", cleanupErr)
+		}
+	}()
+
+	items, err := client.ItemGet(ctx, zabbix.ItemGetParams{
+		GetParameters: zabbix.GetParameters{
+			Output: "extend",
+		},
+		ItemIDs: resp.ItemIDs,
+	})
+	if err != nil {
+		t.Log("Item get failed:", err)
+		t.FailNow()
+	}
+
+	if len(items) != 1 || items[0].PublicKey != "id_ed25519.pub" || items[0].PrivateKey != "id_ed25519" {
+		t.Logf("SSH item key files mismatch: got=%+v", items)
+		t.FailNow()
+	}
+}
+
+func TestCreateIPMIItem(t *testing.T) {
+
+	ctx := context.Background()
+
+	client, err := zabbix.NewClient(url, zabbix.WithUserPass(user, passwd))
+	if err != nil {
+		t.Log(err)
+		t.FailNow()
+	}
+
+	if err := client.Authenticate(); err != nil {
+		t.Log("Initial auth failed:", err)
+		t.FailNow()
+	}
+
+	// IPMI items need an IPMI interface, so use a dedicated host.
+	suffix := time.Now().Format("20060102150405.000000")
+	hostResp, err := client.HostCreate(ctx, []zabbix.Host{
+		{
+			Host:   "test-ipmi-item-" + suffix,
+			Groups: []zabbix.HostGroup{{GroupID: "2"}},
+			Interfaces: []zabbix.HostInterface{
+				{
+					Type:  zabbix.InterfaceTypeIPMI,
+					Main:  zabbix.MainInterfaceYes,
+					UseIP: zabbix.UseIPOptionIP,
+					IP:    "127.0.0.1",
+					Port:  "623",
+				},
+			},
+		},
+	})
+	if err != nil {
+		t.Log("Host create failed:", err)
+		t.FailNow()
+	}
+
+	// Deleting the host also deletes its items.
+	defer func() {
+		_, cleanupErr := client.HostDelete(ctx, hostResp.HostIDs)
+		if cleanupErr != nil {
+			t.Log("Host cleanup failed:", cleanupErr)
+		}
+	}()
+
+	interfaces, err := client.HostInterfaceGet(ctx, zabbix.HostInterfaceGetParams{
+		HostIDs: hostResp.HostIDs,
+	})
+	if err != nil || len(interfaces) != 1 {
+		t.Logf("Host interface get failed: err=%v interfaces=%+v", err, interfaces)
+		t.FailNow()
+	}
+
+	resp, err := client.ItemCreate(ctx, zabbix.ItemCreateParams{
+		zabbix.Item{
+			HostID:      hostResp.HostIDs[0],
+			InterfaceID: interfaces[0].InterfaceID,
+			Name:        "Test Item IPMI",
+			Key:         "ipmi.test",
+			Type:        zabbix.Ptr(zabbix.ItemTypeIPMIAgent),
+			ValueType:   zabbix.Ptr(zabbix.ItemValueTypeFloat),
+			Delay:       "1m",
+			IPMISensor:  "CPU Temp",
+		},
+	})
+	if err != nil {
+		t.Log("IPMI item create failed:", err)
+		t.FailNow()
+	}
+
+	items, err := client.ItemGet(ctx, zabbix.ItemGetParams{
+		GetParameters: zabbix.GetParameters{
+			Output: "extend",
+		},
+		ItemIDs: resp.ItemIDs,
+	})
+	if err != nil {
+		t.Log("Item get failed:", err)
+		t.FailNow()
+	}
+
+	if len(items) != 1 || items[0].IPMISensor != "CPU Temp" {
+		t.Logf("IPMI item sensor mismatch: got=%+v", items)
 		t.FailNow()
 	}
 }
