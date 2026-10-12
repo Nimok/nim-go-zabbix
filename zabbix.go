@@ -69,6 +69,8 @@ type Client interface {
 	HistoryClear(ctx context.Context, params HistoryClearParams) (*HistoryClearResponse, error)
 	HistoryPush(ctx context.Context, params HistoryPushParams) (*HistoryPushResponse, error)
 
+	TrendGet(ctx context.Context, params TrendGetParams) ([]Trend, error)
+
 	Logout(ctx context.Context) (LogoutSuccess, error)
 }
 
