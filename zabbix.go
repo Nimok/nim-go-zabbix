@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"reflect"
 	"sync"
 	"time"
 
@@ -58,6 +59,11 @@ type Client interface {
 	MaintenanceCreate(ctx context.Context, params MaintenanceCreateParams) (*MaintenanceCreateResponse, error)
 	MaintenanceUpdate(ctx context.Context, params MaintenanceUpdateParams) (*MaintenanceUpdateResponse, error)
 	MaintenanceDelete(ctx context.Context, params MaintenanceDeleteParams) (*MaintenanceDeleteResponse, error)
+
+	ItemGet(ctx context.Context, params ItemGetParams) ([]Item, error)
+	ItemCreate(ctx context.Context, params ItemCreateParams) (*ItemCreateResponse, error)
+	ItemUpdate(ctx context.Context, params ItemUpdateParams) (*ItemUpdateResponse, error)
+	ItemDelete(ctx context.Context, params ItemDeleteParams) (*ItemDeleteResponse, error)
 
 	Logout(ctx context.Context) (LogoutSuccess, error)
 }
@@ -219,6 +225,7 @@ func (c *zabbixClient) makeRequest(ctx context.Context, method string, params an
 
 	mapper, err := mapstructure.NewDecoder(&mapstructure.DecoderConfig{
 		WeaklyTypedInput: true,
+		DecodeHook:       emptyArrayToObjectHook,
 		Result:           res,
 		TagName:          "json",
 	})
@@ -236,4 +243,24 @@ func (c *zabbixClient) makeRequest(ctx context.Context, method string, params an
 
 	return nil
 
+}
+
+// emptyArrayToObjectHook handles Zabbix returning [] instead of an object for empty
+// object properties (e.g. item valuemap, interface details). Pointer targets are left nil,
+// struct and map targets get their zero value.
+func emptyArrayToObjectHook(from reflect.Value, to reflect.Value) (any, error) {
+	if from.Kind() != reflect.Slice || from.Len() != 0 {
+		return from.Interface(), nil
+	}
+
+	switch to.Kind() {
+	case reflect.Ptr:
+		if to.Type().Elem().Kind() == reflect.Struct {
+			return nil, nil
+		}
+	case reflect.Struct, reflect.Map:
+		return map[string]any{}, nil
+	}
+
+	return from.Interface(), nil
 }
